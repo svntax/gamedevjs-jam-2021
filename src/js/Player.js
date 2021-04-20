@@ -5,7 +5,7 @@ class Player {
     constructor(scene, x, y, cursorKeys) {
         this.parentScene = scene;
 
-        this.hitbox = scene.add.rectangle(x, y, 32, 32, 0xff0000, 0);
+        this.hitbox = scene.add.rectangle(x, y, scene.getTileSize(), scene.getTileSize(), 0xff0000, 0);
         this.hitbox.setOrigin(0, 0);
         scene.physics.add.existing(this.hitbox);
 
@@ -32,11 +32,11 @@ class Player {
     }
 
     getTileX(){
-        return Math.floor((this.x) / 32);
+        return Math.floor((this.x - this.parentScene.getGridX()) / this.parentScene.getTileSize());
     }
 
     getTileY(){
-        return Math.floor((this.y + 4) / 32);
+        return Math.floor((this.y + 4 - this.parentScene.getGridY()) / this.parentScene.getTileSize());
     }
 
     setMirrored = (mirrored) => {
@@ -55,19 +55,35 @@ class Player {
     }
 
     moveLeft = (event) => {
-        this.hitbox.x -= this.moveAmount * this.moveDir;
+        const nextTileX = this.getTileX() - this.moveDir;
+        if(this.checkInsideGrid(nextTileX, this.getTileY())){
+            this.hitbox.x -= this.moveAmount * this.moveDir;
+        }
     }
 
     moveRight = (event) => {
-        this.hitbox.x += this.moveAmount * this.moveDir;
+        const nextTileX = this.getTileX() + this.moveDir;
+        if(this.checkInsideGrid(nextTileX, this.getTileY())){
+            this.hitbox.x += this.moveAmount * this.moveDir;
+        }
     }
 
     moveUp = (event) => {
-        this.hitbox.y -= this.moveAmount;
+        const nextTileY = this.getTileY() - 1;
+        if(this.checkInsideGrid(this.getTileX(), nextTileY)){
+            this.hitbox.y -= this.moveAmount;
+        }
     }
 
     moveDown = (event) => {
-        this.hitbox.y += this.moveAmount;
+        const nextTileY = this.getTileY() + 1;
+        if(this.checkInsideGrid(this.getTileX(), nextTileY)){
+            this.hitbox.y += this.moveAmount;
+        }
+    }
+
+    checkInsideGrid = (tx, ty) => {
+        return tx >= 0 && tx < this.parentScene.getGridWidth() && ty >= 0 && ty < this.parentScene.getGridHeight();
     }
     
 }
