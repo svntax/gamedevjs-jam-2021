@@ -12,12 +12,30 @@ class FloorTile {
         this.flashColor = 0xfacade;
         this.laserColor = 0xf33838;
 
-        this.sprite = scene.add.rectangle(x + 2, y + 2, 28, 24, this.laserColor, 1);
-        this.sprite.visible = false;
-        this.sprite.depth = 10;
-        this.sprite.setOrigin(0, 0);
+        this.floorSprite = scene.add.rectangle(x + 2, y + 2, 28, 24, this.laserColor, 0.8);
+        this.floorSprite.visible = false;
+        this.floorSprite.depth = 10;
+        this.floorSprite.setOrigin(0, 0);
 
-        this.state = "IDLE";
+        this.laserSprite = scene.add.rectangle(x + (scene.getTileSize() / 2), y + scene.getTileSize() - 8, 28, 128, this.laserColor, 0.8);
+        this.laserSprite.visible = false;
+        this.laserSprite.depth = 10;
+        this.laserSprite.setOrigin(0.5, 1);
+
+        this.laserShrinkTween = scene.tweens.add({
+            targets: this.laserSprite,
+            paused: true,
+            scaleX: {from: 1, to: 0},
+            ease: "Linear",
+            duration: 1000
+        });
+        this.laserShootTween = scene.tweens.add({
+            targets: this.laserSprite,
+            paused: true,
+            scaleY: {from: 0, to: 1},
+            ease: "Linear",
+            duration: 5000
+        });
     }
 
     get x(){
@@ -41,13 +59,48 @@ class FloorTile {
     }
 
     flash = (duration) => {
-        this.sprite.fillColor = this.laserColor;
-        this.sprite.visible = true;
+        this.floorSprite.visible = true;
         this.parentScene.time.delayedCall(duration, this.onDurationEnd, [], this);
     }
 
+    shootLaser = (laserDuration) => {
+        let tweenDuration = laserDuration;
+        let tweenDelay = 0;
+        this.laserSprite.scaleX = 1;
+        this.laserSprite.scaleY = 0;
+        this.laserSprite.visible = true;
+        if(laserDuration > 500){
+            tweenDuration = 500;
+            tweenDelay = laserDuration - 500;
+        }
+        this.laserShrinkTween.stop();
+        this.laserShrinkTween = this.parentScene.tweens.add({
+            targets: this.laserSprite,
+            scaleX: {from: 1, to: 0},
+            ease: "Linear",
+            duration: tweenDuration,
+            delay: tweenDelay,
+            onComplete: this.laserShrinkComplete,
+            onCompleteScope: this
+        });
+        
+        this.laserShootTween.stop();
+        this.laserShootTween = this.parentScene.tweens.add({
+            targets: this.laserSprite,
+            scaleY: {from: 0, to: 1},
+            ease: "Linear",
+            duration: 100
+        });
+
+        this.parentScene.time.delayedCall(laserDuration, this.onDurationEnd, [], this);
+    }
+
     onDurationEnd = () => {
-        this.sprite.visible = false;
+        this.floorSprite.visible = false;
+    }
+
+    laserShrinkComplete = () => {
+        this.laserSprite.visible = false;
     }
     
 }

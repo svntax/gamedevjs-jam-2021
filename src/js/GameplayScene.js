@@ -12,7 +12,7 @@ class GameplayScene extends Phaser.Scene {
         this.game.events.addListener(Phaser.Core.Events.BLUR, this.onBlur, this);
         this.game.events.addListener(Phaser.Core.Events.FOCUS, this.onFocus, this);
 
-        this.beatText = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY + 220, "Beat:", {fontSize: 32});
+        this.beatText = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY + 220, "Ready", {fontSize: 32});
         this.beatText.setOrigin(0.5);
         this.beatCounter = 1;
 
@@ -22,8 +22,13 @@ class GameplayScene extends Phaser.Scene {
         // TODO read level data
         this.beatLength = 60 / this.bpm;
         this.levelData = [
-            [{x: 0, y: 0, type: 1, duration: this.beatLength / 2}, {x: 0, y: 1, type: 1, duration: this.beatLength / 2}],
-            [{x: 1, y: 0, type: 1, duration: this.beatLength / 2}, {x: 1, y: 1, type: 1, duration: this.beatLength / 2}]
+            [{x: 0, y: 0, type: 1, duration: this.beatLength / 2}, {x: 2, y: 1, type: 1, duration: this.beatLength / 2}],
+            [{x: 1, y: 0, type: 1, duration: this.beatLength / 2}, {x: 3, y: 1, type: 1, duration: this.beatLength / 2}],
+            [{x: 0, y: 0, type: 2, duration: this.beatLength}, {x: 2, y: 1, type: 2, duration: this.beatLength}],
+            [{x: 1, y: 0, type: 2, duration: this.beatLength}, {x: 3, y: 1, type: 2, duration: this.beatLength}],
+            [],
+            [],
+            []
         ];
         this.beatIndex = 0;
 
@@ -58,19 +63,34 @@ class GameplayScene extends Phaser.Scene {
         this.playerMirrored = new Player(this, this.gridOriginX + ((this.gridWidth - 1) - startTileX) * this.tileSize, this.gridOriginY + startTileY * this.tileSize, this.cursors);
         this.playerMirrored.setMirrored(true);
 
-        this.song.play();
+        this.playerLives = 3;
 
-        this.beatTimer = this.time.addEvent({
-            delay: 60000 / this.bpm,
-            callback: this.runBeat,
-            callbackScope: this,
-            loop: true
+        this.startTimer = this.time.addEvent({
+            delay: 3000,
+            callback: this.startLevel,
+            callbackScope: this
         });
+
+        this.state = "READY";
     }
 
     update(){
-        this.player.update();
-        this.playerMirrored.update();
+        if(this.state === "LOADING"){
+            if(!this.song.isDecoding){
+                this.state = "GAMEPLAY";
+                this.beatText.setText("1");
+                this.beatTimer = this.time.addEvent({
+                    delay: 60000 / this.bpm,
+                    callback: this.runBeat,
+                    callbackScope: this,
+                    loop: true
+                });
+            }
+        }
+        else if(this.state === "GAMEPLAY"){
+            this.player.update();
+            this.playerMirrored.update();
+        }
     }
 
     runBeat = () => {
@@ -84,7 +104,7 @@ class GameplayScene extends Phaser.Scene {
                 this.levelTiles[beat.x][beat.y].flash(beat.duration*1000);
             }
             else if(beat.type === 2){ // Laser
-
+                this.levelTiles[beat.x][beat.y].shootLaser(beat.duration*1000);
             }
         }
 
@@ -93,13 +113,22 @@ class GameplayScene extends Phaser.Scene {
         this.beatIndex++;
     }
 
+    startLevel = () => {
+        this.song.play();
+        this.state = "LOADING";
+    }
+
     onBlur = () => {
-        this.beatTimer.paused = true;
+        if(this.beatTimer){
+            this.beatTimer.paused = true;
+        }
         this.song.pause();
     }
 
     onFocus = () => {
-        this.beatTimer.paused = false;
+        if(this.beatTimer){
+            this.beatTimer.paused = false;
+        }
         this.song.resume();
     }
 
