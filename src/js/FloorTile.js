@@ -22,6 +22,8 @@ class FloorTile {
         this.laserSprite.depth = 10;
         this.laserSprite.setOrigin(0.5, 1);
 
+        this.canDealDamage = false;
+
         this.laserShrinkTween = scene.tweens.add({
             targets: this.laserSprite,
             paused: true,
@@ -55,7 +57,17 @@ class FloorTile {
     }
 
     update = () => {
-        
+        if(this.canDealDamage){
+            const px = this.parentScene.player.getTileX();
+            const py = this.parentScene.player.getTileY();
+            const px2 = this.parentScene.playerMirrored.getTileX();
+            const py2 = this.parentScene.playerMirrored.getTileY();
+            const tx = this.getTileX();
+            const ty = this.getTileY();
+            if((px === tx && py === ty) || (px2 === tx && py2 === ty)){
+                this.parentScene.damagePlayer();
+            }
+        }
     }
 
     flash = (duration) => {
@@ -92,6 +104,7 @@ class FloorTile {
             duration: 100
         });
 
+        this.canDealDamage = true;
         this.parentScene.time.delayedCall(laserDuration, this.onDurationEnd, [], this);
     }
 
@@ -101,6 +114,7 @@ class FloorTile {
 
     laserShrinkComplete = () => {
         this.laserSprite.visible = false;
+        this.canDealDamage = false;
     }
     
 }

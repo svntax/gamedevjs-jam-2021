@@ -21,6 +21,16 @@ class Player {
         scene.input.keyboard.on("keydown-UP", this.moveUp);
         scene.input.keyboard.on("keydown-LEFT", this.moveLeft);
         scene.input.keyboard.on("keydown-RIGHT", this.moveRight);
+
+        this.damageTween = scene.tweens.add({
+            targets: this.playerSprite,
+            paused: true,
+            alpha: {from: 1, to: 0},
+            ease: "Linear",
+            duration: 80,
+            yoyo: true,
+            repeat: 5
+        });
     }
 
     get x(){
@@ -54,7 +64,19 @@ class Player {
         this.playerSprite.y = this.hitbox.y + 12;
     }
 
+    takeDamage = () => {
+        this.damageTween.play();
+    }
+
+    onDeath = () => {
+        this.damageTween.remove();
+        this.visible = false;
+    }
+
     moveLeft = (event) => {
+        if(!this.canMove()){
+            return;
+        }
         const nextTileX = this.getTileX() - this.moveDir;
         if(this.checkInsideGrid(nextTileX, this.getTileY())){
             this.hitbox.x -= this.moveAmount * this.moveDir;
@@ -62,6 +84,9 @@ class Player {
     }
 
     moveRight = (event) => {
+        if(!this.canMove()){
+            return;
+        }
         const nextTileX = this.getTileX() + this.moveDir;
         if(this.checkInsideGrid(nextTileX, this.getTileY())){
             this.hitbox.x += this.moveAmount * this.moveDir;
@@ -69,6 +94,9 @@ class Player {
     }
 
     moveUp = (event) => {
+        if(!this.canMove()){
+            return;
+        }
         const nextTileY = this.getTileY() - 1;
         if(this.checkInsideGrid(this.getTileX(), nextTileY)){
             this.hitbox.y -= this.moveAmount;
@@ -76,6 +104,9 @@ class Player {
     }
 
     moveDown = (event) => {
+        if(!this.canMove()){
+            return;
+        }
         const nextTileY = this.getTileY() + 1;
         if(this.checkInsideGrid(this.getTileX(), nextTileY)){
             this.hitbox.y += this.moveAmount;
@@ -84,6 +115,10 @@ class Player {
 
     checkInsideGrid = (tx, ty) => {
         return tx >= 0 && tx < this.parentScene.getGridWidth() && ty >= 0 && ty < this.parentScene.getGridHeight();
+    }
+
+    canMove = () => {
+        return this.parentScene.state === "GAMEPLAY";
     }
     
 }

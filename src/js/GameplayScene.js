@@ -64,6 +64,7 @@ class GameplayScene extends Phaser.Scene {
         this.playerMirrored.setMirrored(true);
 
         this.playerLives = 3;
+        this.canTakeDamage = true;
 
         this.startTimer = this.time.addEvent({
             delay: 3000,
@@ -90,6 +91,20 @@ class GameplayScene extends Phaser.Scene {
         else if(this.state === "GAMEPLAY"){
             this.player.update();
             this.playerMirrored.update();
+            for(let x = 0; x < this.levelTiles.length; x++){
+                for(let y = 0; y < this.levelTiles[x].length; y++){
+                    this.levelTiles[x][y].update();
+                }
+            }
+        }
+        else if(this.state === "GAME_OVER"){
+            this.player.update();
+            this.playerMirrored.update();
+            for(let x = 0; x < this.levelTiles.length; x++){
+                for(let y = 0; y < this.levelTiles[x].length; y++){
+                    this.levelTiles[x][y].update();
+                }
+            }
         }
     }
 
@@ -116,6 +131,36 @@ class GameplayScene extends Phaser.Scene {
     startLevel = () => {
         this.song.play();
         this.state = "LOADING";
+    }
+
+    gameOver = () => {
+        this.state = "GAME_OVER";
+        this.song.stop();
+        this.beatTimer.remove();
+        this.player.onDeath();
+        this.playerMirrored.onDeath();
+        this.beatText.setText("Game over!");
+    }
+
+    damagePlayer = () => {
+        if(this.canTakeDamage){
+            this.canTakeDamage = false;
+            this.playerLives--;
+            if(this.playerLives < 0){
+                this.gameOver();
+            }
+            else{
+                
+                this.player.takeDamage();
+                this.playerMirrored.takeDamage();
+
+                this.time.delayedCall(2000, this.resetDamageCooldown, [], this);
+            }
+        }
+    }
+
+    resetDamageCooldown = () => {
+        this.canTakeDamage = true;
     }
 
     onBlur = () => {
