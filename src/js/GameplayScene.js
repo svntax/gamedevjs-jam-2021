@@ -12,9 +12,19 @@ class GameplayScene extends Phaser.Scene {
         this.game.events.addListener(Phaser.Core.Events.BLUR, this.onBlur, this);
         this.game.events.addListener(Phaser.Core.Events.FOCUS, this.onFocus, this);
 
-        this.beatText = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY + 220, "Ready", {fontSize: 32});
+        this.beatText = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY + 180, "Ready", {fontSize: 32});
         this.beatText.setOrigin(0.5);
         this.beatCounter = 1;
+
+        this.mainMenuButton = this.add.text(this.cameras.main.centerX - 180, this.cameras.main.centerY + 244, "Main Menu", {fontSize: 32});
+        this.mainMenuButton.setOrigin(0, 0.5);
+        this.mainMenuButton.setInteractive().on("pointerdown", this.onMainMenuButtonClicked);
+        this.mainMenuButton.visible = false;
+
+        this.restartButton = this.add.text(this.cameras.main.centerX + 180, this.cameras.main.centerY + 244, "Retry", {fontSize: 32});
+        this.restartButton.setOrigin(1, 0.5);
+        this.restartButton.setInteractive().on("pointerdown", this.onRestartButtonClicked);
+        this.restartButton.visible = false;
 
         this.bpm = 100;
         this.song = this.sound.add("first_song");
@@ -100,11 +110,6 @@ class GameplayScene extends Phaser.Scene {
         else if(this.state === "GAME_OVER"){
             this.player.update();
             this.playerMirrored.update();
-            for(let x = 0; x < this.levelTiles.length; x++){
-                for(let y = 0; y < this.levelTiles[x].length; y++){
-                    this.levelTiles[x][y].update();
-                }
-            }
         }
     }
 
@@ -140,6 +145,8 @@ class GameplayScene extends Phaser.Scene {
         this.player.onDeath();
         this.playerMirrored.onDeath();
         this.beatText.setText("Game over!");
+        this.mainMenuButton.visible = true;
+        this.restartButton.visible = true;
     }
 
     damagePlayer = () => {
@@ -161,6 +168,16 @@ class GameplayScene extends Phaser.Scene {
 
     resetDamageCooldown = () => {
         this.canTakeDamage = true;
+    }
+
+    onMainMenuButtonClicked = (pointer, localX, localY, event) => {
+        this.song.stop();
+        this.scene.start("MainMenu");
+    }
+
+    onRestartButtonClicked = (pointer, localX, localY, event) => {
+        this.song.stop();
+        this.scene.restart();
     }
 
     onBlur = () => {
