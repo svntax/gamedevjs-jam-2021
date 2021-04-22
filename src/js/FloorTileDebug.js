@@ -50,11 +50,16 @@ class FloorTileDebug {
         this.debugText.visible = true;
     }
 
-    shootLaser = (laserDuration) => {
+    shootLaser = () => {
         this.floorSprite.visible = true;
         this.floorSprite.fillColor = this.laserColor;
         this.debugText.setText("L");
         this.debugText.visible = true;
+    }
+
+    resetState = () => {
+        this.floorSprite.visible = false;
+        this.debugText.visible = false;
     }
     
 }
