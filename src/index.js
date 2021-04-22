@@ -1,4 +1,7 @@
 import "phaser";
+import UIPlugin from "phaser3-rex-plugins/templates/ui/ui-plugin.js";
+import InputTextPlugin from "phaser3-rex-plugins/plugins/inputtext-plugin.js";
+
 import MainMenuScene from "./js/MainMenuScene";
 import GameplayScene from "./js/GameplayScene";
 import LevelEditorScene from "./js/LevelEditorScene";
@@ -8,6 +11,9 @@ const config = {
     width: 800,
     height: 600,
     parent: "game-container",
+    dom: {
+        createContainer: true
+    },
     scale: {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_HORIZONTALLY
@@ -18,6 +24,22 @@ const config = {
             gravity: {y: 0},
             debug: false
         }
+    },
+    plugins: {
+        global: [
+            {
+                key: "rexInputTextPlugin",
+                plugin: InputTextPlugin,
+                start: true
+            },
+        ],
+        scene: [
+            {
+                key: "rexUI",
+                plugin: UIPlugin,
+                mapping: "rexUI"
+            },
+        ]
     }
 };
 

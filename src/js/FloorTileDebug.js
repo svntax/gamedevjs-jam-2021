@@ -8,16 +8,19 @@ class FloorTileDebug {
         this.hitbox = scene.add.rectangle(x, y, scene.getTileSize() - 2, scene.getTileSize() - 2, 0xff0000);
         this.hitbox.setOrigin(0, 0);
 
-        this.debugText = scene.add.text(64, 64, "", {fontSize: 24});
-        this.debugText.setOrigin(0, 0);
-
         this.flashColor = 0xfacade;
         this.laserColor = 0xf33838;
 
-        this.floorSprite = scene.add.rectangle(x + 2, y + 2, scene.getTileSize() - 4, scene.getTileSize() - 8, this.laserColor, 0.8);
+        this.floorSprite = scene.add.rectangle(x, y, scene.getTileSize() - 2, scene.getTileSize() - 2, this.laserColor, 0.8);
         this.floorSprite.visible = false;
         this.floorSprite.depth = 10;
         this.floorSprite.setOrigin(0, 0);
+
+        this.debugText = scene.add.text(x, y, ".", {fontSize: 24});
+        this.debugText.setOrigin(0, 0);
+        this.debugText.setColor("black");
+        this.debugText.visible = false;
+        this.debugText.depth = 20;
     }
 
     get x(){
@@ -44,12 +47,14 @@ class FloorTileDebug {
         this.floorSprite.visible = true;
         this.floorSprite.fillColor = this.flashColor;
         this.debugText.setText("F");
+        this.debugText.visible = true;
     }
 
     shootLaser = (laserDuration) => {
         this.floorSprite.visible = true;
         this.floorSprite.fillColor = this.laserColor;
         this.debugText.setText("L");
+        this.debugText.visible = true;
     }
     
 }
