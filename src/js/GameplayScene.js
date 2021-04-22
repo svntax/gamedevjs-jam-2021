@@ -111,6 +111,12 @@ class GameplayScene extends Phaser.Scene {
             this.player.update();
             this.playerMirrored.update();
         }
+        else if(this.state === "FINISHED"){
+            this.player.update();
+            this.playerMirrored.update();
+            this.beatText.setText("Finished!");
+            // TODO: prompt player to rate the level, then go back to menu
+        }
     }
 
     runBeat = () => {
