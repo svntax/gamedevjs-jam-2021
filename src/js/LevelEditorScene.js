@@ -99,8 +99,8 @@ class LevelEditorScene extends Phaser.Scene {
 
         this.bpm = 100;
         const sceneRef = this;
-        this.bpmLabel = this.add.text(484, 380, "BPM", {fontSize: "24px"});
-
+        
+        this.bpmLabel = this.add.text(484, 376, "BPM", {fontSize: "24px"});
         this.bpmInput = this.add.rexInputText(512, 384, 10, 10, {
             id: "bpmInput",
             type: "number",
@@ -109,15 +109,49 @@ class LevelEditorScene extends Phaser.Scene {
         })
         .resize(76, 100)
         .setOrigin(0.5)
-        .on("textchange", function (inputText) {
-            sceneRef.bpm = parseInt(inputText.text);
+        .on("textchange", function(inputText){
+            let newBpm = parseInt(inputText.text);
+            if(newBpm <= 0){
+                newBpm = 1;
+                sceneRef.bpmInput.text = "1";
+            }
+            else{
+                sceneRef.bpm = parseInt(inputText.text);
+            }
         });
-
         this.bpmInput.node.addEventListener("keypress", function (evt) {
             if(evt.which != 8 && evt.which != 0 && evt.which < 48 || evt.which > 57) {
                 evt.preventDefault();
             }
         });
+
+        this.songLengthLabel = this.add.text(578, 352, "Beats\nLength", {fontSize: "24px"});
+        this.songLengthInput = this.add.rexInputText(606, 384, 10, 10, {
+            id: "songLengthInput",
+            type: "number",
+            text: "68",
+            fontSize: "24px",
+        })
+        .resize(76, 100)
+        .setOrigin(0.5)
+        .on("textchange", function(inputText){
+            let newLength = parseInt(inputText.text);
+            if(newLength <= 0){
+                newLength = 1;
+                sceneRef.bpmInput.text = "1";
+            }
+            else{
+                sceneRef.setNumberOfBeats(parseInt(inputText.text));
+                sceneRef.updateLevelDataLength();
+            }
+        });
+        this.bpmInput.node.addEventListener("keypress", function (evt) {
+            if(evt.which != 8 && evt.which != 0 && evt.which < 48 || evt.which > 57) {
+                evt.preventDefault();
+            }
+        });
+
+        this.beatIndexLabel = this.add.text(128, 508, "0001", {fontSize: "24px", align: "left"});
 
         // Timeline UI
         this.timelineCursor = this.rexUI.add.roundRectangle(0, 0, 0, 0, 10, LevelEditorScene.COLOR_PRIMARY);
@@ -140,8 +174,11 @@ class LevelEditorScene extends Phaser.Scene {
                 }
                 sceneRef.timelineCursor.visible = true;
                 if(sceneRef.song){
-                    const subdivisionIndex = Math.round(value * sceneRef.numberOfSubdivisions);
-                    sceneRef.beatIndex = subdivisionIndex;
+                    let subdivisionIndex = Math.round(value * sceneRef.numberOfSubdivisions);
+                    if(subdivisionIndex >= sceneRef.numberOfSubdivisions){
+                        subdivisionIndex = sceneRef.numberOfSubdivisions - 1;
+                    }
+                    sceneRef.setBeatIndex(subdivisionIndex);
                     sceneRef.onPauseClicked();
                     if(sceneRef.beatTimer){
                         sceneRef.beatTimer.remove();
@@ -208,7 +245,6 @@ class LevelEditorScene extends Phaser.Scene {
                 this.levelTiles[x][y] = floorTile;
             }
         }
-        this.beatIndex = 0;
 
         this.state = "EDITING";
     }
@@ -230,7 +266,7 @@ class LevelEditorScene extends Phaser.Scene {
     runBeat = () => {
         if(this.beatIndex >= this.levelData.length){
             // Reached the end of the song
-            this.beatIndex = 0;
+            this.decrementBeatIndex();
             this.beatTimer.remove();
             this.state = "EDITING";
             return;
@@ -241,7 +277,28 @@ class LevelEditorScene extends Phaser.Scene {
         this.syncedTimelineSlider.visible = true;
 
         this.readCurrentBeatData();
+        this.incrementBeatIndex();
+        if(this.beatIndex >= this.levelData.length){
+            // Reached the end of the song
+            this.playButton.text = "Play";
+            this.onStopClicked();
+        }
+    }
+
+    setBeatIndex = (i) => {
+        this.beatIndex = i;
+        this.beatIndexLabel.text = i + 1;
+        this.beatIndexLabel.text = this.beatIndexLabel.text.padStart(4, "0");
+    }
+    incrementBeatIndex = () => {
         this.beatIndex++;
+        this.beatIndexLabel.text = this.beatIndex + 1;
+        this.beatIndexLabel.text = this.beatIndexLabel.text.padStart(4, "0");
+    }
+    decrementBeatIndex = () => {
+        this.beatIndex--;
+        this.beatIndexLabel.text = this.beatIndex + 1;
+        this.beatIndexLabel.text = this.beatIndexLabel.text.padStart(4, "0");
     }
 
     readCurrentBeatData = () => {
@@ -269,6 +326,20 @@ class LevelEditorScene extends Phaser.Scene {
         }
     }
 
+    updateLevelDataLength = () => {
+        let currentLength = this.levelData.length;
+        if(currentLength < this.numberOfSubdivisions){
+            while(this.levelData.length < this.numberOfSubdivisions){
+                this.levelData.push([]);
+            }
+        }
+        else{
+            while(this.levelData.length > this.numberOfSubdivisions){
+                this.levelData.pop();
+            }
+        }
+    }
+
     onExitClicked = () => {
         this.song.stop();
         // TODO: confirm prompt, also check unsaved progress
@@ -286,7 +357,7 @@ class LevelEditorScene extends Phaser.Scene {
         this.song.stop();
         this.beatIndex = 0;
         this.runBeat();
-        this.beatIndex = 0;
+        this.setBeatIndex(0);
         this.state = "EDITING";
         if(this.beatTimer){
             this.beatTimer.remove();
@@ -308,6 +379,7 @@ class LevelEditorScene extends Phaser.Scene {
                     loop: true
                 });
                 this.runBeat();
+                this.decrementBeatIndex();
             }
         }
         else{
@@ -322,6 +394,7 @@ class LevelEditorScene extends Phaser.Scene {
             });
             this.song.play();
             this.runBeat();
+            this.decrementBeatIndex();
         }
     }
 
@@ -339,7 +412,7 @@ class LevelEditorScene extends Phaser.Scene {
         }
         this.beatIndex--;
         this.runBeat();
-        this.beatIndex--;
+        this.decrementBeatIndex();
     }
 
     moveBeatRight = () => {
@@ -348,7 +421,7 @@ class LevelEditorScene extends Phaser.Scene {
         }
         this.beatIndex++;
         this.runBeat();
-        this.beatIndex--;
+        this.decrementBeatIndex();
     }
 
     updateTileData = (tileX, tileY, tileType) => {
@@ -382,6 +455,11 @@ class LevelEditorScene extends Phaser.Scene {
                 currentData.push(tileData);
             }
         }
+    }
+
+    setNumberOfBeats = (amount) => {
+        this.numberOfBeats = amount;
+        this.numberOfSubdivisions = this.numberOfBeats * 4;
     }
 
     createButton = (scene, text) => {
