@@ -10,6 +10,7 @@ class Player {
         scene.physics.add.existing(this.hitbox);
 
         this.playerSprite = scene.add.circle(x+12, y+12, 12, 0x32a12f);
+        this.playerSprite.depth = 10;
 
         //this.playerSprite = scene.add.sprite(x, y, "player");
 

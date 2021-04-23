@@ -119,15 +119,6 @@ class LevelEditorScene extends Phaser.Scene {
             }
         });
 
-        /*const style = document.createElement("style");
-        style.innerHTML = `
-        #bpmInput::-webkit-inner-spin-button, 
-        #bpmInput::-webkit-outer-spin-button { 
-          -webkit-appearance: none; 
-          margin: 0; 
-        }`;
-        document.head.appendChild(style);*/
-
         // Timeline UI
         this.timelineCursor = this.rexUI.add.roundRectangle(0, 0, 0, 0, 10, LevelEditorScene.COLOR_PRIMARY);
         this.timelineCursor.depth = 10;
@@ -149,25 +140,25 @@ class LevelEditorScene extends Phaser.Scene {
                 }
                 sceneRef.timelineCursor.visible = true;
                 if(sceneRef.song){
-                    const subdivisionIndex = Math.round(value * sceneRef.numberOfBeats); // TODO: change to use subdivisions instead
+                    const subdivisionIndex = Math.round(value * sceneRef.numberOfSubdivisions);
                     sceneRef.beatIndex = subdivisionIndex;
                     sceneRef.onPauseClicked();
                     if(sceneRef.beatTimer){
                         sceneRef.beatTimer.remove();
                     }
                     sceneRef.beatTimer = sceneRef.time.addEvent({
-                        delay: 60000 / sceneRef.bpm,
+                        delay: 60000 / sceneRef.bpm / 4,
                         callback: sceneRef.runBeat,
                         callbackScope: sceneRef,
                         loop: true,
                         paused: true
                     });
-                    const targetSeek = sceneRef.song.duration * (subdivisionIndex / sceneRef.numberOfBeats); // TODO: change to use subdivisions instead
+                    const targetSeek = sceneRef.song.duration * (subdivisionIndex / sceneRef.numberOfSubdivisions);
                     sceneRef.song.stop();
                     sceneRef.song.play({seek: targetSeek});
                     sceneRef.song.pause();
                     sceneRef.playButton.setText("Play");
-                    sceneRef.runBeat();
+                    sceneRef.readCurrentBeatData();
                 }
             },
 
@@ -188,13 +179,17 @@ class LevelEditorScene extends Phaser.Scene {
         this.song = this.sound.add("first_song");
 
         this.beatLength = 60 / this.bpm;
-        this.levelData = [
+        this.levelData = [];
+        for(let i = 0; i < this.numberOfSubdivisions; i++){
+            this.levelData[i] = [];
+        }
+        /*this.levelData = [
             [{x: 0, y: 0, type: 1, duration: this.beatLength / 2}, {x: 2, y: 1, type: 1, duration: this.beatLength / 2}],
             [{x: 1, y: 0, type: 1, duration: this.beatLength / 2}, {x: 3, y: 1, type: 1, duration: this.beatLength / 2}],
             [{x: 0, y: 0, type: 2, duration: this.beatLength}, {x: 2, y: 1, type: 2, duration: this.beatLength}],
             [{x: 1, y: 0, type: 2, duration: this.beatLength}, {x: 3, y: 1, type: 2, duration: this.beatLength}],
             [],[],[],[],[],[],[],[],[],
-        ];
+        ];*/
         this.beatIndex = 0;
 
         this.gridOriginX = 64;
@@ -205,8 +200,6 @@ class LevelEditorScene extends Phaser.Scene {
         this.levelTiles = [];
         for(let x = 0; x < this.gridWidth; x++){
             this.levelTiles[x] = [];
-        }
-        for(let x = 0; x < this.gridWidth; x++){
             for(let y = 0; y < this.gridHeight; y++){
                 const color = x < 10 ? 0xe3e3e3 : 0x7fb2f0;
 
@@ -215,7 +208,6 @@ class LevelEditorScene extends Phaser.Scene {
                 this.levelTiles[x][y] = floorTile;
             }
         }
-        this.runBeat();
         this.beatIndex = 0;
 
         this.state = "EDITING";
@@ -226,7 +218,7 @@ class LevelEditorScene extends Phaser.Scene {
             if(!this.song.isDecoding){
                 this.state = "PLAYING";
                 this.beatTimer = this.time.addEvent({
-                    delay: 60000 / this.bpm,
+                    delay: 60000 / this.bpm / 4,
                     callback: this.runBeat,
                     callbackScope: this,
                     loop: true
@@ -243,23 +235,28 @@ class LevelEditorScene extends Phaser.Scene {
             this.state = "EDITING";
             return;
         }
-        const progressFraction = this.beatIndex / this.numberOfBeats; // TODO: change to use subdivisions instead
+        const progressFraction = this.beatIndex / this.numberOfSubdivisions;
         this.syncedTimelineSlider.value = progressFraction;
         this.timelineCursor.visible = false;
         this.syncedTimelineSlider.visible = true;
+
+        this.readCurrentBeatData();
+        this.beatIndex++;
+    }
+
+    readCurrentBeatData = () => {
+        if(!this.levelTiles || !this.levelData){
+            return;
+        }
 
         // First reset the state of all tiles
         for(let i = 0; i < this.levelTiles.length; i++){
             for(let j = 0; j < this.levelTiles[i].length; j++){
                 this.levelTiles[i][j].resetState();
             }
-            const debugTile = this.levelTiles[i];
         }
 
         // Then read the current row of tile data and update their states
-        if(!this.levelTiles){
-            return;
-        }
         const currentData = this.levelData[this.beatIndex];
         for(let i = 0; i < currentData.length; i++){
             const beat = currentData[i];
@@ -270,13 +267,19 @@ class LevelEditorScene extends Phaser.Scene {
                 this.levelTiles[beat.x][beat.y].shootLaser();
             }
         }
-        this.beatIndex++;
     }
 
     onExitClicked = () => {
         this.song.stop();
         // TODO: confirm prompt, also check unsaved progress
+        this.clearData();
         this.scene.start("MainMenu");
+    }
+
+    clearData = () => {
+        this.song = null;
+        this.levelData.length = 0;
+        this.levelTiles.length = 0;
     }
 
     onStopClicked = () => {
@@ -299,7 +302,7 @@ class LevelEditorScene extends Phaser.Scene {
             }
             else{
                 this.beatTimer = this.time.addEvent({
-                    delay: 60000 / this.bpm,
+                    delay: 60000 / this.bpm / 4,
                     callback: this.runBeat,
                     callbackScope: this,
                     loop: true
@@ -312,7 +315,7 @@ class LevelEditorScene extends Phaser.Scene {
                 this.beatTimer.remove();
             }
             this.beatTimer = this.time.addEvent({
-                delay: 60000 / this.bpm,
+                delay: 60000 / this.bpm / 4,
                 callback: this.runBeat,
                 callbackScope: this,
                 loop: true
@@ -331,11 +334,54 @@ class LevelEditorScene extends Phaser.Scene {
     }
 
     moveBeatLeft = () => {
-
+        if(this.beatIndex === 0){
+            return;
+        }
+        this.beatIndex--;
+        this.runBeat();
+        this.beatIndex--;
     }
 
     moveBeatRight = () => {
+        if(this.beatIndex >= this.numberOfSubdivisions){
+            return;
+        }
+        this.beatIndex++;
+        this.runBeat();
+        this.beatIndex--;
+    }
 
+    updateTileData = (tileX, tileY, tileType) => {
+        if(this.beatIndex < 0 || this.beatIndex >= this.levelData.length){
+            console.log("beatIndex is out of bounds, this shouldn't happen!");
+            return;
+        }
+        const currentData = this.levelData[this.beatIndex];
+        // Check if tile exists
+        let tileExists = false;
+        let tileData = null;
+        for(let i = 0; i < currentData.length && !tileExists; i++){
+            const data = currentData[i];
+            if(data.x === tileX && data.y === tileY){
+                tileExists = true;
+                tileData = data;
+            }
+        }
+        if(tileData){
+            if(tileType === 0){
+                // TODO: remove data? just change the type to 0?
+                tileData.type = 0;
+            }
+            else{
+                tileData.type = tileType;
+            }
+        }
+        else{
+            if(tileType !== 0){
+                tileData = {x: tileX, y: tileY, type: tileType, duration: this.beatLength / 2};
+                currentData.push(tileData);
+            }
+        }
     }
 
     createButton = (scene, text) => {

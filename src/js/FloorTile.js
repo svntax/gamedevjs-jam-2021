@@ -14,12 +14,12 @@ class FloorTile {
 
         this.floorSprite = scene.add.rectangle(x + 2, y + 2, 28, 24, this.laserColor, 0.8);
         this.floorSprite.visible = false;
-        this.floorSprite.depth = 10;
+        this.floorSprite.depth = 5;
         this.floorSprite.setOrigin(0, 0);
 
         this.laserSprite = scene.add.rectangle(x + (scene.getTileSize() / 2), y + scene.getTileSize() - 8, 28, 128, this.laserColor, 0.8);
         this.laserSprite.visible = false;
-        this.laserSprite.depth = 10;
+        this.laserSprite.depth = 15;
         this.laserSprite.setOrigin(0.5, 1);
 
         this.canDealDamage = false;

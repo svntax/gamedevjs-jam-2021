@@ -21,6 +21,8 @@ class FloorTileDebug {
         this.debugText.setColor("black");
         this.debugText.visible = false;
         this.debugText.depth = 20;
+
+        this.hitbox.setInteractive().on("pointerdown", this.onTileClicked);
     }
 
     get x(){
@@ -60,6 +62,28 @@ class FloorTileDebug {
     resetState = () => {
         this.floorSprite.visible = false;
         this.debugText.visible = false;
+        this.debugText.text = ".";
+    }
+
+    onTileClicked = (pointer, localX, localY, event) => {
+        if(this.parentScene.state !== "EDITING"){
+            return;
+        }
+
+        // Type values: 0 = blank, 1 = flash, 2 = laser
+        if(this.debugText.text === "."){
+            this.flash();
+            this.parentScene.updateTileData(this.getTileX(), this.getTileY(), 1);
+        }
+        else if(this.debugText.text === "F"){
+            this.shootLaser();
+            this.parentScene.updateTileData(this.getTileX(), this.getTileY(), 2);
+        }
+        else if(this.debugText.text === "L"){
+            this.resetState();
+            this.parentScene.updateTileData(this.getTileX(), this.getTileY(), 0);
+        }
+
     }
     
 }
