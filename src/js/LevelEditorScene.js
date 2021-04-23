@@ -12,6 +12,8 @@ class LevelEditorScene extends Phaser.Scene {
     }
 
     create(){
+        const sceneRef = this;
+
         this.game.events.addListener(Phaser.Core.Events.BLUR, this.onBlur, this);
         this.game.events.addListener(Phaser.Core.Events.FOCUS, this.onFocus, this);
 
@@ -62,15 +64,18 @@ class LevelEditorScene extends Phaser.Scene {
         });
 
         // Menu controls UI
+        this.uploadSongButton = this.createButton(this, "Upload song");
+        this.saveButton = this.createButton(this, "Save");
+        this.importButton = this.createButton(this, "Import");
         this.menuButtons = this.rexUI.add.buttons({
             x: 680, y: 160,
             width: 200,
             orientation: "y",
 
             buttons: [
-                this.createButton(this, "Upload song"),
-                this.createButton(this, "Save"),
-                this.createButton(this, "Import"),
+                this.uploadSongButton,
+                this.saveButton,
+                this.importButton,
                 this.createButton(this, "Exit")
             ],
 
@@ -82,6 +87,24 @@ class LevelEditorScene extends Phaser.Scene {
         })
         .layout();
 
+        this.add.rexFileChooser({ accept: "audio/*" })
+        .syncTo(this.uploadSongButton)
+        .on("change", function (gameObject) {
+            var files = gameObject.files;
+            if (files.length === 0) {
+                return;
+            }
+            // Set this.song to load the uploaded file
+            // TODO: edge case handling, disable other UI controls until loading is finished
+            let objectURL = URL.createObjectURL(files[0]);
+            console.log(objectURL);
+            sceneRef.load.audio("newSong", objectURL);
+            sceneRef.load.once("complete", () => {
+                sceneRef.song = sceneRef.sound.add("newSong");
+            });
+            sceneRef.load.start();
+        });
+
         this.menuButtons.on("button.click", (button, index, pointer, event) => {
             if(button.text === "Exit"){
                 this.onExitClicked();
@@ -92,13 +115,9 @@ class LevelEditorScene extends Phaser.Scene {
             else if(button.text === "Import"){
                 // TODO: prompt for level data file
             }
-            else if(button.text === "Upload song"){
-                // TODO: prompt for song file
-            }
         });
 
         this.bpm = 100;
-        const sceneRef = this;
         
         this.bpmLabel = this.add.text(484, 376, "BPM", {fontSize: "24px"});
         this.bpmInput = this.add.rexInputText(512, 384, 10, 10, {

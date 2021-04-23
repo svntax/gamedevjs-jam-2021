@@ -1,6 +1,7 @@
 import "phaser";
 import UIPlugin from "phaser3-rex-plugins/templates/ui/ui-plugin.js";
 import InputTextPlugin from "phaser3-rex-plugins/plugins/inputtext-plugin.js";
+import FileChooserPlugin from "phaser3-rex-plugins/plugins/filechooser-plugin.js";
 
 import MainMenuScene from "./js/MainMenuScene";
 import GameplayScene from "./js/GameplayScene";
@@ -30,6 +31,11 @@ const config = {
             {
                 key: "rexInputTextPlugin",
                 plugin: InputTextPlugin,
+                start: true
+            },
+            {
+                key: "rexFileChooser",
+                plugin: FileChooserPlugin,
                 start: true
             },
         ],
