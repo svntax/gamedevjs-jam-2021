@@ -87,6 +87,19 @@ class LevelEditorScene extends Phaser.Scene {
         })
         .layout();
 
+        this.loadingBg = this.add.rectangle(0, 0, this.sys.game.canvas.width, this.sys.game.canvas.height, 0, 0.5);
+        this.loadingBg.setOrigin(0);
+        this.loadingBg.depth = 40;
+        this.loadingBg.setInteractive().on("pointerdown", (pointer, localX, localY, event) => {
+            // Do nothing, this background is just meant to block the mouse from clicking on anything behind it
+        });
+        this.loadingBg.visible = false;
+        this.loadingBgText = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY, "Loading...", {fontSize: 32});
+        this.loadingBgText.setOrigin(0.5);
+        this.loadingBgText.visible = false;
+        this.loadingBgText.depth = 40;
+
+        // Song upload input
         this.add.rexFileChooser({ accept: "audio/*" })
         .syncTo(this.uploadSongButton)
         .on("change", function (gameObject) {
@@ -95,12 +108,15 @@ class LevelEditorScene extends Phaser.Scene {
                 return;
             }
             // Set this.song to load the uploaded file
-            // TODO: edge case handling, disable other UI controls until loading is finished
+            // TODO: edge case handling, why is only the first song uploaded used
+            sceneRef.loadingBg.visible = true;
+            sceneRef.loadingBgText.visible = true;
             let objectURL = URL.createObjectURL(files[0]);
-            console.log(objectURL);
             sceneRef.load.audio("newSong", objectURL);
             sceneRef.load.once("complete", () => {
                 sceneRef.song = sceneRef.sound.add("newSong");
+                sceneRef.loadingBg.visible = false;
+                sceneRef.loadingBgText.visible = false;
             });
             sceneRef.load.start();
         });
@@ -111,23 +127,42 @@ class LevelEditorScene extends Phaser.Scene {
             }
             else if(button.text === "Save"){
                 // TODO: convert level data and metadata to text/json
+                this.onSaveClicked();
             }
             else if(button.text === "Import"){
                 // TODO: prompt for level data file
             }
         });
 
+        this.levelName = "LevelName";
+        this.levelNameInput = this.add.rexInputText(300, 44, 10, 10, {
+            id: "bpmInput",
+            type: "text",
+            text: "LevelName",
+            fontSize: "24px",
+            minLength: 1,
+            maxLength: 32,
+            placeholder: "Level name here...",
+            border: 2,
+            borderColor: 0xfff,
+            paddingLeft: "8px"
+        })
+        .resize(440, 40)
+        .setOrigin(0.5)
+        .on("textchange", function(inputText){
+            sceneRef.levelName = inputText;
+        });
+
         this.bpm = 100;
         
         this.bpmLabel = this.add.text(484, 376, "BPM", {fontSize: "24px"});
-        this.bpmInput = this.add.rexInputText(512, 384, 10, 10, {
+        this.bpmInput = this.add.rexInputText(478, 370, 76, 100, {
             id: "bpmInput",
             type: "number",
             text: "100",
             fontSize: "24px",
         })
-        .resize(76, 100)
-        .setOrigin(0.5)
+        .setOrigin(0) // NOTE: must be 0 due to weird offset issue in Chrome
         .on("textchange", function(inputText){
             let newBpm = parseInt(inputText.text);
             if(newBpm <= 0){
@@ -145,14 +180,13 @@ class LevelEditorScene extends Phaser.Scene {
         });
 
         this.songLengthLabel = this.add.text(578, 352, "Beats\nLength", {fontSize: "24px"});
-        this.songLengthInput = this.add.rexInputText(606, 384, 10, 10, {
+        this.songLengthInput = this.add.rexInputText(576, 370, 76, 100, {
             id: "songLengthInput",
             type: "number",
             text: "68",
             fontSize: "24px",
         })
-        .resize(76, 100)
-        .setOrigin(0.5)
+        .setOrigin(0) // NOTE: must be 0 due to weird offset issue in Chrome
         .on("textchange", function(inputText){
             let newLength = parseInt(inputText.text);
             if(newLength <= 0){
@@ -249,7 +283,7 @@ class LevelEditorScene extends Phaser.Scene {
         this.beatIndex = 0;
 
         this.gridOriginX = 64;
-        this.gridOriginY = 64;
+        this.gridOriginY = 74;
         this.gridWidth = 20;
         this.gridHeight = 12;
         this.tileSize = 24;
@@ -364,6 +398,42 @@ class LevelEditorScene extends Phaser.Scene {
         // TODO: confirm prompt, also check unsaved progress
         this.clearData();
         this.scene.start("MainMenu");
+    }
+
+    onSaveClicked = () => {
+        let name = this.levelName;
+        if(name){
+            const jsonObject = {
+                "name": name,
+                "bpm": this.bpm,
+                "numBeats": this.numberOfBeats,
+                "levelData": this.levelData
+            };
+            const jsonString = JSON.stringify(jsonObject);
+            const blob = new Blob([jsonString], {type: "application/json"});
+            // https://stackoverflow.com/questions/3665115/how-to-create-a-file-in-memory-for-user-to-download-but-not-through-server
+            if(window.navigator.msSaveOrOpenBlob) {
+                window.navigator.msSaveBlob(blob, name);
+            }
+            else{
+                let elem = window.document.createElement("a");
+                elem.href = window.URL.createObjectURL(blob, {oneTimeOnly: true});
+                elem.download = name;
+                document.body.appendChild(elem);
+                elem.click();
+                document.body.removeChild(elem);
+            }
+        }
+        else{
+            this.loadingBg.visible = true;
+            this.loadingBgText.visible = true;
+            this.loadingBgText.setText("Missing name for your level!");
+            this.time.delayedCall(2000, () => {
+                this.loadingBg.visible = false;
+                this.loadingBgText.visible = false;
+                this.loadingBgText.setText("Loading...");
+            }, [], this);
+        }
     }
 
     clearData = () => {
