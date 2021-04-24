@@ -111,12 +111,16 @@ class LevelEditorScene extends Phaser.Scene {
             // TODO: edge case handling, why is only the first song uploaded used
             sceneRef.loadingBg.visible = true;
             sceneRef.loadingBgText.visible = true;
+            if(sceneRef.cache.audio.has("uploadedSong")){
+                sceneRef.cache.audio.remove("uploadedSong");
+            }
             let objectURL = URL.createObjectURL(files[0]);
-            sceneRef.load.audio("newSong", objectURL);
+            sceneRef.load.audio("uploadedSong", objectURL);
             sceneRef.load.once("complete", () => {
-                sceneRef.song = sceneRef.sound.add("newSong");
+                sceneRef.song = sceneRef.sound.add("uploadedSong");
                 sceneRef.loadingBg.visible = false;
                 sceneRef.loadingBgText.visible = false;
+                URL.revokeObjectURL(files[0]);
             });
             sceneRef.load.start();
         });
@@ -126,7 +130,6 @@ class LevelEditorScene extends Phaser.Scene {
                 this.onExitClicked();
             }
             else if(button.text === "Save"){
-                // TODO: convert level data and metadata to text/json
                 this.onSaveClicked();
             }
             else if(button.text === "Import"){
@@ -150,7 +153,8 @@ class LevelEditorScene extends Phaser.Scene {
         .resize(440, 40)
         .setOrigin(0.5)
         .on("textchange", function(inputText){
-            sceneRef.levelName = inputText;
+            console.log(inputText.text);
+            sceneRef.levelName = inputText.text;
         });
 
         this.bpm = 100;
@@ -417,11 +421,12 @@ class LevelEditorScene extends Phaser.Scene {
             }
             else{
                 let elem = window.document.createElement("a");
-                elem.href = window.URL.createObjectURL(blob, {oneTimeOnly: true});
+                elem.href = URL.createObjectURL(blob);
                 elem.download = name;
                 document.body.appendChild(elem);
                 elem.click();
                 document.body.removeChild(elem);
+                URL.revokeObjectURL(blob);
             }
         }
         else{
