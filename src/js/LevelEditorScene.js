@@ -108,13 +108,12 @@ class LevelEditorScene extends Phaser.Scene {
                 return;
             }
             // Set this.song to load the uploaded file
-            // TODO: edge case handling, why is only the first song uploaded used
             sceneRef.loadingBg.visible = true;
             sceneRef.loadingBgText.visible = true;
             if(sceneRef.cache.audio.has("uploadedSong")){
                 sceneRef.cache.audio.remove("uploadedSong");
             }
-            let objectURL = URL.createObjectURL(files[0]);
+            const objectURL = URL.createObjectURL(files[0]);
             sceneRef.load.audio("uploadedSong", objectURL);
             sceneRef.load.once("complete", () => {
                 sceneRef.song = sceneRef.sound.add("uploadedSong");
@@ -125,6 +124,53 @@ class LevelEditorScene extends Phaser.Scene {
             sceneRef.load.start();
         });
 
+        // Level data importing
+        this.add.rexFileChooser({ accept: ".json" })
+        .syncTo(this.importButton)
+        .on("change", function (gameObject) {
+            var files = gameObject.files;
+            if (files.length === 0) {
+                return;
+            }
+            sceneRef.loadingBg.visible = true;
+            sceneRef.loadingBgText.visible = true;
+            // Read the json file
+            const objectURL = URL.createObjectURL(files[0]);
+            if(sceneRef.cache.json.has("levelData")){
+                sceneRef.cache.json.remove("levelData");
+            }
+            sceneRef.load.json("levelData", objectURL);
+            sceneRef.load.once("complete", () => {
+                const jsonData = sceneRef.cache.json.get("levelData");
+                // First validate the json data
+                if(!jsonData || !jsonData.numBeats || !jsonData.bpm || !jsonData.name || !jsonData.levelData){
+                    sceneRef.loadingBgText.setText("Error: could not load json data");
+                    sceneRef.time.delayedCall(2000, () => {
+                        sceneRef.loadingBg.visible = false;
+                        sceneRef.loadingBgText.visible = false;
+                        sceneRef.loadingBgText.setText("Loading...");
+                    }, [], this);
+                    return;
+                }
+                // Note: changing the text values directly for input boxes do NOT trigger the textchange event, so we have to manually update the variables too
+                sceneRef.songLengthInput.text = jsonData.numBeats;
+                sceneRef.setNumberOfBeats(jsonData.numBeats);
+                sceneRef.updateLevelDataLength();
+
+                sceneRef.bpm = jsonData.bpm;
+                sceneRef.bpmInput.text = jsonData.bpm;
+
+                sceneRef.levelNameInput.text = jsonData.name;
+                sceneRef.levelName = jsonData.name;
+
+                sceneRef.loadingBg.visible = false;
+                sceneRef.loadingBgText.visible = false;
+
+                sceneRef.levelData = jsonData.levelData;
+            })
+            sceneRef.load.start();
+        });
+
         this.menuButtons.on("button.click", (button, index, pointer, event) => {
             if(button.text === "Exit"){
                 this.onExitClicked();
@@ -132,13 +178,10 @@ class LevelEditorScene extends Phaser.Scene {
             else if(button.text === "Save"){
                 this.onSaveClicked();
             }
-            else if(button.text === "Import"){
-                // TODO: prompt for level data file
-            }
         });
 
         this.levelName = "LevelName";
-        this.levelNameInput = this.add.rexInputText(300, 44, 10, 10, {
+        this.levelNameInput = this.add.rexInputText(280, 44, 10, 10, {
             id: "bpmInput",
             type: "text",
             text: "LevelName",
@@ -153,7 +196,6 @@ class LevelEditorScene extends Phaser.Scene {
         .resize(440, 40)
         .setOrigin(0.5)
         .on("textchange", function(inputText){
-            console.log(inputText.text);
             sceneRef.levelName = inputText.text;
         });
 
@@ -576,7 +618,9 @@ class LevelEditorScene extends Phaser.Scene {
         if(this.beatTimer){
             this.beatTimer.paused = true;
         }
-        this.song.pause();
+        if(this.song){
+            this.song.pause();
+        }
     }
 
     onFocus = () => {
@@ -584,7 +628,9 @@ class LevelEditorScene extends Phaser.Scene {
             if(this.beatTimer){
                 this.beatTimer.paused = false;
             }
-            this.song.resume();
+            if(this.song){
+                this.song.resume();
+            }
         }
     }
 
