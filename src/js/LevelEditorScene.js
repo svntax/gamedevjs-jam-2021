@@ -23,7 +23,7 @@ class LevelEditorScene extends Phaser.Scene {
         // Playback controls UI
         this.playButton = this.createButton(this, "Play");
         this.playbackButtons = this.rexUI.add.buttons({
-            x: 280, y: 420,
+            x: 254, y: 420,
             width: 400,
             orientation: "x",
 
@@ -227,7 +227,7 @@ class LevelEditorScene extends Phaser.Scene {
             }
         });
 
-        this.songLengthLabel = this.add.text(578, 352, "Beats\nLength", {fontSize: "24px"});
+        this.songLengthLabel = this.add.text(578, 352, "Total\nBeats", {fontSize: "24px"});
         this.songLengthInput = this.add.rexInputText(576, 370, 76, 100, {
             id: "songLengthInput",
             type: "number",
@@ -604,7 +604,7 @@ class LevelEditorScene extends Phaser.Scene {
         return scene.rexUI.add.label({
             width: 40,
             height: 40,
-            background: scene.rexUI.add.roundRectangle(0, 0, 0, 0, 20, LevelEditorScene.COLOR_LIGHT),
+            background: scene.rexUI.add.roundRectangle(0, 0, 0, 0, 2, LevelEditorScene.COLOR_LIGHT),
             text: scene.add.text(0, 0, text, {
                 fontSize: 18
             }),

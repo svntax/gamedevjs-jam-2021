@@ -11,24 +11,61 @@ class MainMenuScene extends Phaser.Scene {
     }
 
     create(){
-        this.startButton = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY, "Start", {fontSize: 32});
-        this.startButton.setOrigin(0.5);
-        this.startButton.setInteractive().on("pointerdown", this.onStartButtonClicked);
+        this.playButton = this.createButton(this, "Play");
+        this.browseLevelsButton = this.createButton(this, "Browse Levels");
+        this.levelEditorButton = this.createButton(this, "Level Editor");
+        this.optionsButton = this.createButton(this, "Options");
+        this.playbackButtons = this.rexUI.add.buttons({
+            x: this.cameras.main.centerX, y: 420,
+            width: 400,
+            orientation: "y",
 
-        this.levelEditorButton = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY + 96, "Level Editor", {fontSize: 32});
-        this.levelEditorButton.setOrigin(0.5);
-        this.levelEditorButton.setInteractive().on("pointerdown", this.onLevelEditorButtonClicked);
-    }
+            buttons: [
+                this.playButton,
+                this.browseLevelsButton,
+                this.levelEditorButton,
+                this.optionsButton
+            ],
 
-    onStartButtonClicked = (pointer, localX, localY, event) => {
-        this.scene.start("Gameplay");
-    }
+            space: 12,
+            expand: false
+        })
+        .layout();
 
-    onLevelEditorButtonClicked = (pointer, localX, localY, event) => {
-        this.scene.start("LevelEditor");
+        this.playbackButtons.on("button.click", (button, index, pointer, event) => {
+            if(button.text === "Play"){
+                // TODO: level select with default/included levels
+                this.scene.start("Gameplay");
+            }
+            else if(button.text === "Browse Levels"){
+                // TODO
+            }
+            else if(button.text === "Level Editor"){
+                this.scene.start("LevelEditor");
+            }
+            else if(button.text === "Options"){
+                // TODO: volume controls
+            }
+        });
     }
 
     update(){
+    }
+
+    createButton = (scene, text) => {
+        return scene.rexUI.add.label({
+            width: 40,
+            height: 40,
+            background: scene.rexUI.add.roundRectangle(0, 0, 0, 0, 2, 0xb4b4b4),
+            text: scene.add.text(0, 0, text, {
+                fontSize: "32px"
+            }),
+            space: {
+                left: 12,
+                right: 12,
+            },
+            align: "center"
+        });
     }
 
 }

@@ -8,7 +8,7 @@ class GameplayScene extends Phaser.Scene {
         super("Gameplay");
     }
 
-    create(){
+    create(data){
         this.game.events.addListener(Phaser.Core.Events.BLUR, this.onBlur, this);
         this.game.events.addListener(Phaser.Core.Events.FOCUS, this.onFocus, this);
 
