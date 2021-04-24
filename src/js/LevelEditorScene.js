@@ -167,6 +167,8 @@ class LevelEditorScene extends Phaser.Scene {
                 sceneRef.loadingBgText.visible = false;
 
                 sceneRef.levelData = jsonData.levelData;
+
+                sceneRef.readCurrentBeatData();
             })
             sceneRef.load.start();
         });
