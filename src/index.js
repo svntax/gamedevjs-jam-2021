@@ -6,6 +6,7 @@ import FileChooserPlugin from "phaser3-rex-plugins/plugins/filechooser-plugin.js
 import MainMenuScene from "./js/MainMenuScene";
 import GameplayScene from "./js/GameplayScene";
 import LevelEditorScene from "./js/LevelEditorScene";
+import BrowseLevelsScene from "./js/BrowseLevelsScene";
 
 const config = {
     type: Phaser.AUTO,
@@ -55,6 +56,7 @@ class Game extends Phaser.Game{
         this.scene.add("MainMenu", MainMenuScene);
         this.scene.add("Gameplay", GameplayScene);
         this.scene.add("LevelEditor", LevelEditorScene);
+        this.scene.add("BrowseLevelsMenu", BrowseLevelsScene);
         this.scene.start("MainMenu");
     }
 }

@@ -30,8 +30,10 @@
     "webpack-dev-server": "^3.11.2"
   },
   "dependencies": {
+    "https-browserify": "^1.0.0",
     "near-api-js": "^0.39.0",
     "phaser": "^3.54.0",
-    "phaser3-rex-plugins": "^1.1.45"
+    "phaser3-rex-plugins": "^1.1.45",
+    "stream-http": "^3.2.0"
   }
 }

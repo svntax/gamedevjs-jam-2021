@@ -21,6 +21,12 @@ const webpackConfig = {
     },
     devServer: {
         contentBase: DIR_DIST
+    },
+    resolve: {
+        fallback: {
+            "http": require.resolve("stream-http"),
+            "https": require.resolve("https-browserify")
+        }
     }
 };
 
