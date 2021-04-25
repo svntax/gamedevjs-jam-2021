@@ -68,8 +68,9 @@ class LevelEditorScene extends Phaser.Scene {
 
         // Menu controls UI
         this.uploadSongButton = this.createButton(this, "Upload song");
-        this.saveButton = this.createButton(this, "Save");
-        this.importButton = this.createButton(this, "Import");
+        this.saveButton = this.createButton(this, "Save Data");
+        this.importButton = this.createButton(this, "Import Data");
+        this.publishButton = this.createButton(this, "Publish");
         this.menuButtons = this.rexUI.add.buttons({
             x: 680, y: 160,
             width: 200,
@@ -79,6 +80,7 @@ class LevelEditorScene extends Phaser.Scene {
                 this.uploadSongButton,
                 this.saveButton,
                 this.importButton,
+                this.publishButton,
                 this.createButton(this, "Exit")
             ],
 
@@ -116,8 +118,12 @@ class LevelEditorScene extends Phaser.Scene {
             if(sceneRef.cache.audio.has("uploadedSong")){
                 sceneRef.cache.audio.remove("uploadedSong");
             }
+            console.log(files[0]);
             const objectURL = URL.createObjectURL(files[0]);
             sceneRef.load.audio("uploadedSong", objectURL);
+            sceneRef.load.once("load", (fileObj) => {
+                console.log("FileObj", fileObj);
+            });
             sceneRef.load.once("complete", () => {
                 sceneRef.song = sceneRef.sound.add("uploadedSong");
                 sceneRef.loadingBg.visible = false;
@@ -183,13 +189,16 @@ class LevelEditorScene extends Phaser.Scene {
             else if(button.text === "Save"){
                 this.onSaveClicked();
             }
+            else if(button.text === "Publish"){
+                this.onPublishClicked();
+            }
         });
 
-        this.levelName = "LevelName";
+        this.levelName = "";
         this.levelNameInput = this.add.rexInputText(280, 44, 10, 10, {
             id: "bpmInput",
             type: "text",
-            text: "LevelName",
+            text: "",
             fontSize: "24px",
             minLength: 1,
             maxLength: 32,
@@ -452,7 +461,7 @@ class LevelEditorScene extends Phaser.Scene {
     }
 
     onSaveClicked = () => {
-        let name = this.levelName;
+        const name = this.levelName;
         if(name){
             const jsonObject = {
                 "name": name,
@@ -477,15 +486,51 @@ class LevelEditorScene extends Phaser.Scene {
             }
         }
         else{
-            this.loadingBg.visible = true;
-            this.loadingBgText.visible = true;
-            this.loadingBgText.setText("Missing name for your level!");
-            this.time.delayedCall(2000, () => {
-                this.loadingBg.visible = false;
-                this.loadingBgText.visible = false;
-                this.loadingBgText.setText("Loading...");
-            }, [], this);
+            this.showMessagePopup("Missing name for your level!", 2000);
         }
+    }
+
+    onPublishClicked = () => {
+        // Verify that we have the level name, level data, and song uploaded
+        if(!this.levelName){
+            this.showMessagePopup("Missing name for your level!", 2000);
+            return;
+        }
+        if(!this.song){
+            this.showMessagePopup("Missing song upload!", 2000);
+            return;
+        }
+        if(!this.levelData || this.levelData.length === 0){
+            this.showMessagePopup("No level data!", 2000);
+            return;
+        }
+        // Create json data file
+        const jsonObject = {
+            "name": this.levelName,
+            "bpm": this.bpm,
+            "numBeats": this.numberOfBeats,
+            "levelData": this.levelData
+        };
+        const jsonString = JSON.stringify(jsonObject);
+        const levelDataBlob = new Blob([jsonString], {type: "application/json"});
+        console.log(levelDataBlob);
+        if(this.cache.audio.has("uploadedSong")){
+            console.log(this.cache.audio.get("uploadedSong"));
+        }
+        else{
+            console.log(this.cache.audio.get("first_song"));
+        }
+    }
+
+    showMessagePopup = (message, duration) => {
+        this.loadingBg.visible = true;
+        this.loadingBgText.visible = true;
+        this.loadingBgText.setText(message);
+        this.time.delayedCall(duration, () => {
+            this.loadingBg.visible = false;
+            this.loadingBgText.visible = false;
+            this.loadingBgText.setText("Loading...");
+        }, [], this);
     }
 
     clearData = () => {

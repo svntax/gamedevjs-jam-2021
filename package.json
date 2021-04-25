@@ -32,11 +32,16 @@
     "webpack-dev-server": "^3.11.2"
   },
   "dependencies": {
+    "assert": "^2.0.0",
+    "cids": "^1.1.6",
     "https-browserify": "^1.0.0",
+    "ipfs-core": "^0.5.4",
     "near-api-js": "^0.39.0",
     "phaser": "^3.54.0",
     "phaser3-rex-plugins": "^1.1.45",
     "regenerator-runtime": "^0.13.7",
-    "stream-http": "^3.2.0"
+    "stream-browserify": "^3.0.0",
+    "stream-http": "^3.2.0",
+    "uint8arrays": "^2.1.5"
   }
 }

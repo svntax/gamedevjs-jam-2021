@@ -23,12 +23,15 @@ const webpackConfig = {
         ]
     },
     devServer: {
-        contentBase: DIR_DIST
+        contentBase: DIR_DIST,
+        port: 9000
     },
     resolve: {
         fallback: {
-            "http": require.resolve("stream-http"),
-            "https": require.resolve("https-browserify")
+            "http": require.resolve("stream-http"), // needed for NEAR packages
+            "https": require.resolve("https-browserify"), // needed for NEAR packages
+            "stream": require.resolve("stream-browserify"), // needed by ipfs
+            "assert": require.resolve("assert/") // needed by ipfs
         }
     },
     plugins: [
