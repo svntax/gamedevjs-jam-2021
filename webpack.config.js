@@ -3,6 +3,9 @@ const TerserPlugin = require("terser-webpack-plugin");
 
 const DIR_DIST = path.join(__dirname, "dist");
 
+const webpack = require('webpack');
+const Dotenv = require('dotenv-webpack');
+
 const webpackConfig = {
     module: {
         rules: []
@@ -27,7 +30,16 @@ const webpackConfig = {
             "http": require.resolve("stream-http"),
             "https": require.resolve("https-browserify")
         }
-    }
+    },
+    plugins: [
+        new webpack.ProvidePlugin({
+            process: "process/browser",
+            Buffer: ["buffer", "Buffer"]
+        }),
+        new Dotenv({
+            path: "./neardev/dev-account.env"
+        }),
+    ],
 };
 
 const babelConfig = {

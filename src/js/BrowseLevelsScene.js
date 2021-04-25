@@ -1,21 +1,20 @@
 import "phaser";
-import {createButton} from "./utils.js";
-
-import * as nearAPI from "near-api-js";
-const { connect, keyStores, WalletConnection } = nearAPI;
+import { createButton } from "./utils.js";
 
 class BrowseLevelsScene extends Phaser.Scene {
 
-    constructor(){
+    constructor() {
         super("BrowseLevelsMenu");
     }
 
-    preload(){
-        
+    preload() {
+
     }
 
-    create(){
-        console.log(connect);
+    async create() {
+        const response = await window.contract.hello();
+        console.log("Contract response:", response);
+
         this.backButton = createButton(this, "Back");
         this.menuButtons = this.rexUI.add.buttons({
             x: 112, y: 540,
@@ -28,17 +27,16 @@ class BrowseLevelsScene extends Phaser.Scene {
             space: 12,
             expand: false
         })
-        .layout();
+            .layout();
 
         this.menuButtons.on("button.click", (button, index, pointer, event) => {
-            if(button.text === "Back"){
-                // TODO: level select with default/included levels
+            if (button.text === "Back") {
                 this.scene.start("MainMenu");
             }
         });
     }
 
-    update(){
+    update() {
     }
 
 }

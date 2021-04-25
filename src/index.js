@@ -1,4 +1,11 @@
 import "phaser";
+import "regenerator-runtime/runtime";
+
+import { initContract, login, logout } from "./js/utils";
+
+import getConfig from "./config";
+const { networkId } = getConfig(process.env.NODE_ENV || "development");
+
 import UIPlugin from "phaser3-rex-plugins/templates/ui/ui-plugin.js";
 import InputTextPlugin from "phaser3-rex-plugins/plugins/inputtext-plugin.js";
 import FileChooserPlugin from "phaser3-rex-plugins/plugins/filechooser-plugin.js";
@@ -23,7 +30,7 @@ const config = {
     physics: {
         default: "arcade",
         arcade: {
-            gravity: {y: 0},
+            gravity: { y: 0 },
             debug: false
         }
     },
@@ -50,8 +57,8 @@ const config = {
     }
 };
 
-class Game extends Phaser.Game{
-    constructor(){
+class Game extends Phaser.Game {
+    constructor() {
         super(config);
         this.scene.add("MainMenu", MainMenuScene);
         this.scene.add("Gameplay", GameplayScene);
@@ -61,6 +68,22 @@ class Game extends Phaser.Game{
     }
 }
 
-window.onload = function(){
+window.onload = function () {
     const game = new Game();
 };
+
+function signedOutFlow() {
+    console.log("Not signed in");
+}
+
+function signedInFlow() {
+    console.log("Signed in as:", window.accountId);
+    console.log("Contract link:", window.contract.contractId);
+}
+
+window.nearInitPromise = initContract()
+    .then(() => {
+        if (window.walletConnection.isSignedIn()) signedInFlow()
+        else signedOutFlow()
+    })
+    .catch(console.error);

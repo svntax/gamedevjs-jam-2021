@@ -6,6 +6,7 @@ class LevelEditorScene extends Phaser.Scene {
     static COLOR_PRIMARY = 0x4e342e;
     static COLOR_LIGHT = 0x7b5e57;
     static COLOR_DARK = 0x260e04;
+    static BG_COLOR = 0x2a3950;
 
     constructor(){
         super("LevelEditor");
@@ -16,6 +17,8 @@ class LevelEditorScene extends Phaser.Scene {
 
         this.game.events.addListener(Phaser.Core.Events.BLUR, this.onBlur, this);
         this.game.events.addListener(Phaser.Core.Events.FOCUS, this.onFocus, this);
+
+        this.add.rectangle(0, 0, this.sys.game.canvas.width, this.sys.game.canvas.height, LevelEditorScene.BG_COLOR).setOrigin(0);
 
         this.numberOfBeats = 68; // NOTE: Number of beats in intro test song
         this.numberOfSubdivisions = this.numberOfBeats * 4; // Sixteenth notes are the smallest subdivision
@@ -606,11 +609,11 @@ class LevelEditorScene extends Phaser.Scene {
             height: 40,
             background: scene.rexUI.add.roundRectangle(0, 0, 0, 0, 2, LevelEditorScene.COLOR_LIGHT),
             text: scene.add.text(0, 0, text, {
-                fontSize: 18
+                fontSize: "18px"
             }),
             space: {
-                left: 10,
-                right: 10,
+                left: 12,
+                right: 12,
             },
             align: "center"
         });
