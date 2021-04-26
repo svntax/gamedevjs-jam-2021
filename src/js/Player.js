@@ -115,7 +115,15 @@ class Player {
     }
 
     checkInsideGrid = (tx, ty) => {
-        return tx >= 0 && tx < this.parentScene.getGridWidth() && ty >= 0 && ty < this.parentScene.getGridHeight();
+        const insideGrid = tx >= 0 && tx < this.parentScene.getGridWidth() && ty >= 0 && ty < this.parentScene.getGridHeight();
+        let insideArea = false;
+        if(this.mirrored){
+            insideArea = tx >= this.parentScene.getGridWidth() / 2;
+        }
+        else{
+            insideArea = tx < this.parentScene.getGridWidth() / 2;
+        }
+        return insideGrid && insideArea;
     }
 
     canMove = () => {
