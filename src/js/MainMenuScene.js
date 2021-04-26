@@ -22,16 +22,16 @@ class MainMenuScene extends Phaser.Scene {
         this.playButton = createButton(this, "Play");
         this.browseLevelsButton = createButton(this, "Browse Levels");
         this.levelEditorButton = createButton(this, "Level Editor");
-        this.optionsButton = createButton(this, "Options");
+        //this.optionsButton = createButton(this, "Options");
         this.menuButtons = this.rexUI.add.buttons({
-            x: this.cameras.main.centerX, y: 420,
+            x: this.cameras.main.centerX, y: 440,
             width: 400,
             orientation: "y",
             buttons: [
                 this.playButton,
                 this.browseLevelsButton,
                 this.levelEditorButton,
-                this.optionsButton
+                //this.optionsButton
             ],
             space: 12,
             expand: false
@@ -50,7 +50,7 @@ class MainMenuScene extends Phaser.Scene {
                 this.scene.start("LevelEditor");
             }
             else if(button.text === "Options"){
-                // TODO: volume controls
+                // Unfinished: volume controls
             }
         });
 
@@ -69,7 +69,7 @@ class MainMenuScene extends Phaser.Scene {
         const loginText = window.walletConnection.isSignedIn() ? "Logout from NEAR" : "Login to NEAR";
         this.nearLoginButton = createButton(this, loginText, { fontSize: "12px" });
         this.loginButtonGroup = this.rexUI.add.buttons({
-            x: 680, y: 72,
+            x: 700, y: 72,
             width: 120,
             orientation: "y",
             buttons: [

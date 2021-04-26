@@ -9,7 +9,7 @@ class Player {
         this.hitbox.setOrigin(0, 0);
         scene.physics.add.existing(this.hitbox);
 
-        this.playerSprite = scene.add.circle(x+12, y+12, 12, 0x32a12f);
+        this.playerSprite = scene.add.ellipse(x+16, y+14, 20, 16, 0x217836);
         this.playerSprite.depth = 10;
 
         //this.playerSprite = scene.add.sprite(x, y, "player");
@@ -61,8 +61,8 @@ class Player {
     }
 
     update = () => {
-        this.playerSprite.x = this.hitbox.x + 12;
-        this.playerSprite.y = this.hitbox.y + 12;
+        this.playerSprite.x = this.hitbox.x + 16;
+        this.playerSprite.y = this.hitbox.y + 14;
     }
 
     takeDamage = () => {

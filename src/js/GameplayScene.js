@@ -13,16 +13,19 @@ class GameplayScene extends Phaser.Scene {
         this.game.events.addListener(Phaser.Core.Events.BLUR, this.onBlur, this);
         this.game.events.addListener(Phaser.Core.Events.FOCUS, this.onFocus, this);
 
-        this.beatText = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY + 180, "Ready", {fontSize: 32});
+        this.beatText = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY + 180, "Ready", { fontSize: 32 });
         this.beatText.setOrigin(0.5);
         this.beatCounter = 1;
+
+        this.livesText = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY + 240, "Lives: 3", { fontSize: 32});
+        this.livesText.setOrigin(0.5);
 
         this.mainMenuButton = this.add.text(this.cameras.main.centerX - 180, this.cameras.main.centerY + 244, "Main Menu", {fontSize: 32});
         this.mainMenuButton.setOrigin(0, 0.5);
         this.mainMenuButton.setInteractive().on("pointerdown", this.onMainMenuButtonClicked);
         this.mainMenuButton.visible = false;
 
-        this.restartButton = this.add.text(this.cameras.main.centerX + 180, this.cameras.main.centerY + 244, "Retry", {fontSize: 32});
+        this.restartButton = this.add.text(this.cameras.main.centerX + 180, this.cameras.main.centerY + 244, "Retry", { fontSize: 32 });
         this.restartButton.setOrigin(1, 0.5);
         this.restartButton.setInteractive().on("pointerdown", this.onRestartButtonClicked);
         this.restartButton.visible = false;
@@ -182,6 +185,7 @@ class GameplayScene extends Phaser.Scene {
         this.beatTimer.remove();
         this.player.onDeath();
         this.playerMirrored.onDeath();
+        this.livesText.visible = false;
         this.beatText.visible = true;
         this.beatText.setText("Game over!");
         this.mainMenuButton.visible = true;
@@ -197,6 +201,7 @@ class GameplayScene extends Phaser.Scene {
         if(this.canTakeDamage){
             this.canTakeDamage = false;
             this.playerLives--;
+            this.livesText.setText("Lives: " + this.playerLives);
             if(this.playerLives < 0){
                 this.gameOver();
             }

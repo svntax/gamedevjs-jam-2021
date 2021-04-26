@@ -4,9 +4,9 @@ import FloorTileDebug from "./FloorTileDebug";
 
 class LevelEditorScene extends Phaser.Scene {
 
-    static COLOR_PRIMARY = 0x4e342e;
-    static COLOR_LIGHT = 0x7b5e57;
-    static COLOR_DARK = 0x260e04;
+    static COLOR_PRIMARY = 0x95a5a6;
+    static COLOR_LIGHT = 0x3d619b;
+    static COLOR_DARK = 0x22e4d;
     static BG_COLOR = 0x2c3e50;
 
     constructor() {
