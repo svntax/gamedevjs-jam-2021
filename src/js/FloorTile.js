@@ -72,10 +72,12 @@ class FloorTile {
 
     flash = (duration) => {
         this.floorSprite.visible = true;
+        this.parentScene.telegraphSound.play();
         this.parentScene.time.delayedCall(duration, this.onDurationEnd, [], this);
     }
 
     shootLaser = (laserDuration) => {
+        this.parentScene.laserSound.play();
         let tweenDuration = laserDuration;
         let tweenDelay = 0;
         this.laserSprite.scaleX = 1;

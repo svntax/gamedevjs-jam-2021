@@ -67,6 +67,9 @@ class GameplayScene extends Phaser.Scene {
             });
         }
 
+        this.laserSound = this.sound.add("laserSound");
+        this.telegraphSound = this.sound.add("telegraphSound");
+
         // Grid setup with laser tiles
         this.gridOriginX = 80;
         this.gridOriginY = 64;

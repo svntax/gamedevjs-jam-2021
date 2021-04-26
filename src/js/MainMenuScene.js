@@ -11,6 +11,9 @@ class MainMenuScene extends Phaser.Scene {
     preload(){
         this.load.audio("tutorialSong", ["assets/tutorial_song.ogg"]);
         this.load.json("tutorialLevelData", "assets/TutorialLevel.json");
+
+        this.load.audio("laserSound", ["assets/laser.wav"]);
+        this.load.audio("telegraphSound", ["assets/telegraph.wav"]);
     }
 
     create(){
