@@ -54,6 +54,26 @@ class MainMenuScene extends Phaser.Scene {
             }
         });
 
+        this.titleText = this.add.text(this.cameras.main.centerX, 128, "Just Lasers\nand\nReflections", { fontSize: 48, align: "center" });
+        this.titleText.setOrigin(0.5);
+
+        // Grid setup
+        this.gridWidth = 12;
+        this.gridHeight = 4;
+        this.tileSize = 32;
+        this.gridOriginX = (this.sys.game.canvas.width - (this.gridWidth * this.tileSize)) / 2;
+        this.gridOriginY = 214;
+        for(let x = 0; x < this.gridWidth; x++){
+            for(let y = 0; y < this.gridHeight; y++){
+                const color = x < this.gridWidth / 2 ? 0xe3e3e3 : 0x7fb2f0;
+                let rect = this.add.rectangle(this.gridOriginX + x*this.tileSize + 2, this.gridOriginY + y*this.tileSize + 2, 28, 24, color);
+                const color2 = x < this.gridWidth / 2 ? 0x8d8d8d : 0x2d73ce;
+                let bottom = this.add.rectangle(this.gridOriginX + x*this.tileSize + 2, this.gridOriginY + y*this.tileSize + 24, 28, 6, color2);
+                bottom.setOrigin(0, 0);
+                rect.setOrigin(0, 0);
+            }
+        }
+
         this.popupBg = this.add.rectangle(0, 0, this.sys.game.canvas.width, this.sys.game.canvas.height, 0, 0.5);
         this.popupBg.setOrigin(0);
         this.popupBg.depth = 40;

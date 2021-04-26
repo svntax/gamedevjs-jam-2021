@@ -2,7 +2,6 @@ import "phaser";
 import "regenerator-runtime/runtime";
 
 import IPFS from "ipfs-core";
-import uint8ArrayConcat from "uint8arrays/concat";
 
 import { initContract, login, logout } from "./js/utils";
 
