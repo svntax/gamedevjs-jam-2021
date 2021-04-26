@@ -21,7 +21,7 @@ class LevelEditorScene extends Phaser.Scene {
 
         this.add.rectangle(0, 0, this.sys.game.canvas.width, this.sys.game.canvas.height, LevelEditorScene.BG_COLOR).setOrigin(0);
 
-        this.numberOfBeats = 68; // NOTE: Number of beats in intro test song
+        this.numberOfBeats = 120; // NOTE: Number of beats in tutorial song
         // *CUT FEATURE
         this.numberOfSubdivisions = this.numberOfBeats * 1; // Eigth notes are the smallest subdivision
 
@@ -120,7 +120,6 @@ class LevelEditorScene extends Phaser.Scene {
             if (sceneRef.cache.audio.has("uploadedSong")) {
                 sceneRef.cache.audio.remove("uploadedSong");
             }
-            console.log(files[0]);
             const objectURL = URL.createObjectURL(files[0]);
             sceneRef.load.audio("uploadedSong", objectURL);
             sceneRef.load.once("complete", () => {
@@ -213,13 +212,13 @@ class LevelEditorScene extends Phaser.Scene {
             sceneRef.levelName = inputText.text;
         });
 
-        this.bpm = 100;
+        this.bpm = 90;
 
         this.bpmLabel = this.add.text(484, 376, "BPM", { fontSize: "24px" });
         this.bpmInput = this.add.rexInputText(478, 370, 76, 100, {
             id: "bpmInput",
             type: "number",
-            text: "100",
+            text: "90",
             fontSize: "24px",
         })
         .setOrigin(0) // NOTE: must be 0 due to weird offset issue in Chrome
@@ -243,7 +242,7 @@ class LevelEditorScene extends Phaser.Scene {
         this.songLengthInput = this.add.rexInputText(576, 370, 76, 100, {
             id: "songLengthInput",
             type: "number",
-            text: "68",
+            text: "120",
             fontSize: "24px",
         })
             .setOrigin(0) // NOTE: must be 0 due to weird offset issue in Chrome
@@ -291,6 +290,9 @@ class LevelEditorScene extends Phaser.Scene {
                     if(subdivisionIndex >= sceneRef.numberOfSubdivisions){
                         subdivisionIndex = sceneRef.numberOfSubdivisions - 1;
                     }
+                    if(subdivisionIndex <= 0){
+                        subdivisionIndex = 1;
+                    }
                     sceneRef.setBeatIndex(subdivisionIndex);
                     sceneRef.onPauseClicked();
                     if(sceneRef.beatTimer){
@@ -326,7 +328,7 @@ class LevelEditorScene extends Phaser.Scene {
         })
             .layout();
 
-        this.song = this.sound.add("first_song");
+        this.song = this.sound.add("tutorialSong");
 
         this.beatLength = 60 / this.bpm;
         this.levelData = [];
@@ -373,9 +375,11 @@ class LevelEditorScene extends Phaser.Scene {
     runBeat = () => {
         if(this.beatIndex >= this.levelData.length){
             // Reached the end of the song
-            this.decrementBeatIndex();
+            //this.decrementBeatIndex();
             this.beatTimer.remove();
             this.state = "EDITING";
+            this.playButton.text = "Play";
+            this.onStopClicked();
             return;
         }
         const progressFraction = this.beatIndex / this.numberOfSubdivisions;
@@ -384,23 +388,22 @@ class LevelEditorScene extends Phaser.Scene {
         this.syncedTimelineSlider.visible = true;
 
         this.readCurrentBeatData();
-        this.incrementBeatIndex();
-        if(this.beatIndex >= this.levelData.length){
-            // Reached the end of the song
-            this.playButton.text = "Play";
-            this.onStopClicked();
-        }
+        this.beatIndex++;
+        this.beatIndexLabel.text = this.beatIndex;
+        this.beatIndexLabel.text = this.beatIndexLabel.text.padStart(4, "0");
     }
 
     setBeatIndex = (i) => {
         this.beatIndex = i;
         this.beatIndexLabel.text = i + 1;
         this.beatIndexLabel.text = this.beatIndexLabel.text.padStart(4, "0");
+        
     }
     incrementBeatIndex = () => {
         this.beatIndex++;
         this.beatIndexLabel.text = this.beatIndex + 1;
         this.beatIndexLabel.text = this.beatIndexLabel.text.padStart(4, "0");
+        
     }
     decrementBeatIndex = () => {
         this.beatIndex--;
@@ -469,7 +472,6 @@ class LevelEditorScene extends Phaser.Scene {
                 window.navigator.msSaveBlob(blob, name);
             }
             else {
-                console.log("Saving");
                 let elem = window.document.createElement("a");
                 elem.href = URL.createObjectURL(blob);
                 elem.download = name;
@@ -524,8 +526,7 @@ class LevelEditorScene extends Phaser.Scene {
             audioDataToUpload = this.songFile;
         }
         else{
-            console.log("Not uploaded song yet");
-            const audioBlob = await (await fetch("assets/first_song.mp3")).blob();
+            const audioBlob = await (await fetch("assets/tutorial_song.ogg")).blob();
             audioDataToUpload = audioBlob;
         }
         const audioCid = await window.ipfsNode.add(audioDataToUpload);
@@ -570,19 +571,18 @@ class LevelEditorScene extends Phaser.Scene {
     onPlayClicked = () => {
         this.state = "PLAYING";
         if(this.song.isPaused){
-            this.song.resume();
+            const targetSeek = this.song.duration * (this.beatIndex / this.numberOfSubdivisions);
+            this.song.play({ seek: targetSeek });
             if(this.beatTimer){
-                this.beatTimer.paused = false;
+                this.beatTimer.remove();
             }
-            else{
-                this.beatTimer = this.time.addEvent({
-                    delay: 60000 / this.bpm,
-                    callback: this.runBeat,
-                    callbackScope: this,
-                    loop: true
-                });
-                this.runBeat();
-            }
+            this.beatTimer = this.time.addEvent({
+                delay: 60000 / this.bpm,
+                callback: this.runBeat,
+                callbackScope: this,
+                loop: true
+            });
+            this.runBeat();
         }
         else{
             if(this.beatTimer){
@@ -594,7 +594,10 @@ class LevelEditorScene extends Phaser.Scene {
                 callbackScope: this,
                 loop: true
             });
-            this.song.play();
+            //this.song.play();
+            const targetSeek = this.song.duration * (this.beatIndex / this.numberOfSubdivisions);
+            this.song.stop();
+            this.song.play({ seek: targetSeek });
             this.runBeat();
         }
     }
@@ -605,6 +608,7 @@ class LevelEditorScene extends Phaser.Scene {
         }
         this.song.pause();
         this.state = "EDITING";
+        this.decrementBeatIndex();
     }
 
     moveBeatLeft = () => {
@@ -617,7 +621,7 @@ class LevelEditorScene extends Phaser.Scene {
     }
 
     moveBeatRight = () => {
-        if(this.beatIndex >= this.numberOfSubdivisions){
+        if(this.beatIndex >= this.numberOfSubdivisions - 1){
             return;
         }
         this.beatIndex++;

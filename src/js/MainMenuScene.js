@@ -9,7 +9,7 @@ class MainMenuScene extends Phaser.Scene {
     }
 
     preload(){
-        this.load.audio("first_song", ["assets/first_song.mp3"]);
+        this.load.audio("tutorialSong", ["assets/tutorial_song.ogg"]);
     }
 
     create(){

@@ -50,7 +50,7 @@ class GameplayScene extends Phaser.Scene {
             });
         }
         else{
-            this.song = this.sound.add("first_song");
+            this.song = this.sound.add("tutorialSong");
             this.bpm = 100;
             this.beatLength = 60 / this.bpm;
             this.levelData = [
@@ -113,7 +113,7 @@ class GameplayScene extends Phaser.Scene {
                 this.state = "GAMEPLAY";
                 this.beatText.setText("1");
                 this.beatTimer = this.time.addEvent({
-                    delay: 60000 / this.bpm / 2,
+                    delay: 60000 / this.bpm,
                     callback: this.runBeat,
                     callbackScope: this,
                     loop: true
