@@ -6,7 +6,8 @@ import IPFS from "ipfs-core";
 import { initContract, login, logout } from "./js/utils";
 
 import getConfig from "./config";
-const { networkId } = getConfig(process.env.NODE_ENV || "development");
+//const { networkId } = getConfig(process.env.NODE_ENV || "development");
+const { networkId } = getConfig("development");
 
 import UIPlugin from "phaser3-rex-plugins/templates/ui/ui-plugin.js";
 import InputTextPlugin from "phaser3-rex-plugins/plugins/inputtext-plugin.js";

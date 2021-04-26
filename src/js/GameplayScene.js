@@ -31,8 +31,10 @@ class GameplayScene extends Phaser.Scene {
         this.restartButton.visible = false;
 
         this.beatIndex = 0;
+        this.dataObject = null;
 
         if(data && data.jsonObject && data.audioData){
+            this.dataObject = data;
             // Read level data
             const jsonData = data.jsonObject;
             // First read the json data
@@ -194,6 +196,7 @@ class GameplayScene extends Phaser.Scene {
 
     onLevelFinished = () => {
         this.scene.stop();
+        this.dataObject = null;
         this.scene.start("MainMenu");
     }
 
@@ -221,12 +224,18 @@ class GameplayScene extends Phaser.Scene {
 
     onMainMenuButtonClicked = (pointer, localX, localY, event) => {
         this.song.stop();
+        this.dataObject = null;
         this.scene.start("MainMenu");
     }
 
     onRestartButtonClicked = (pointer, localX, localY, event) => {
         this.song.stop();
-        this.scene.restart();
+        if(this.dataObject){
+            this.scene.restart(this.dataObject);
+        }
+        else{
+            this.scene.restart();
+        }
     }
 
     onBlur = () => {

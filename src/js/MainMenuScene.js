@@ -41,7 +41,7 @@ class MainMenuScene extends Phaser.Scene {
         this.menuButtons.on("button.click", (button, index, pointer, event) => {
             if(button.text === "Play"){
                 // TODO: level select with default/included levels
-                this.scene.start("Gameplay");
+                this.scene.start("Gameplay", {});
             }
             else if(button.text === "Browse Levels"){
                 this.scene.start("BrowseLevelsMenu");
