@@ -17,7 +17,7 @@ class FloorTile {
         this.floorSprite.depth = 5;
         this.floorSprite.setOrigin(0, 0);
 
-        this.laserSprite = scene.add.rectangle(x + (scene.getTileSize() / 2), y + scene.getTileSize() - 8, 28, scene.sys.game.canvas.height, this.laserColor, 0.8);
+        this.laserSprite = scene.add.rectangle(x + (scene.getTileSize() / 2), y + scene.getTileSize() - 8, 28, scene.sys.game.canvas.height, this.laserColor, 0.6);
         this.laserSprite.visible = false;
         this.laserSprite.depth = 15;
         this.laserSprite.setOrigin(0.5, 1);

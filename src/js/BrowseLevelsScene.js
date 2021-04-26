@@ -11,7 +11,7 @@ class BrowseLevelsScene extends Phaser.Scene {
 
     }
 
-    async create(){
+    create(){
         this.headerText = this.add.text(this.cameras.main.centerX, 64, "Player Submitted Levels", { fontSize: 32 });
         this.headerText.setOrigin(0.5);
         this.loadingText = this.add.text(this.cameras.main.centerX, 112, "Loading levels...", { fontSize: 24 });
@@ -49,19 +49,21 @@ class BrowseLevelsScene extends Phaser.Scene {
                 // Invalid entry
                 continue;
             }
-            let btn = createButton(this, levels[i].levelName + "\nby " + levels[i].sender, { fontSize: "16px", });
+            let btn = createButton(this, levels[i].levelName + "\nby " + levels[i].sender, { fontSize: "16px" });
             buttonsArray.push(btn);
             this.levelsMetadata.push(levels[i]);
         }
 
         // Set up the scrollable container
         this.levelsContainer = this.rexUI.add.buttons({
-            x: this.cameras.main.centerX, y: 200,
+            x: this.cameras.main.centerX, y: this.cameras.main.centerY,
             width: 440,
+            height: 400,
             orientation: "y",
             buttons: buttonsArray,
             space: 12,
-            expand: false
+            expand: false,
+            align: "top"
         })
         .layout();
 

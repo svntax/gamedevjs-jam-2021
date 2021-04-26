@@ -9,7 +9,7 @@ class GameplayScene extends Phaser.Scene {
         super("Gameplay");
     }
 
-    async create(data){
+    create(data){
         this.game.events.addListener(Phaser.Core.Events.BLUR, this.onBlur, this);
         this.game.events.addListener(Phaser.Core.Events.FOCUS, this.onFocus, this);
 
@@ -38,16 +38,18 @@ class GameplayScene extends Phaser.Scene {
             this.levelData = jsonData.levelData;
 
             // Next read the audio data
-            const audioArrayBuffer = await data.audioData.arrayBuffer();
-            this.sound.decodeAudio("currentSong", audioArrayBuffer);
-            this.sound.on("decodedall", () => {
-                this.song = this.sound.add("currentSong");
-                this.startTimer = this.time.addEvent({
-                    delay: 3000,
-                    callback: this.startLevel,
-                    callbackScope: this
+            data.audioData.arrayBuffer().then((audioArrayBuffer) => {
+                this.sound.decodeAudio("currentSong", audioArrayBuffer);
+                this.sound.on("decodedall", () => {
+                    this.song = this.sound.add("currentSong");
+                    this.startTimer = this.time.addEvent({
+                        delay: 3000,
+                        callback: this.startLevel,
+                        callbackScope: this
+                    });
                 });
             });
+            
         }
         else{
             this.song = this.sound.add("tutorialSong");
@@ -111,7 +113,7 @@ class GameplayScene extends Phaser.Scene {
         if(this.state === "LOADING"){
             if(!this.song.isDecoding){
                 this.state = "GAMEPLAY";
-                this.beatText.setText("1");
+                //this.beatText.setText("1");
                 this.beatTimer = this.time.addEvent({
                     delay: 60000 / this.bpm,
                     callback: this.runBeat,
@@ -138,14 +140,21 @@ class GameplayScene extends Phaser.Scene {
             this.player.update();
             this.playerMirrored.update();
             this.beatText.setText("Finished!");
-            // TODO: prompt player to rate the level, then go back to menu
         }
     }
 
     runBeat = () => {
-        this.beatText.setText(this.beatCounter+1);
+        //this.beatText.setText(this.beatCounter+1);
 
-        this.beatIndex %= this.levelData.length; // REMOVE LATER
+        if(this.beatIndex >= this.levelData.length){
+            this.state = "FINISHED";
+            this.song.stop();
+            this.beatText.visible = true;
+            this.time.delayedCall(3000, this.onLevelFinished, [], this);
+            this.beatTimer.remove();
+            return;
+        }
+
         const currentData = this.levelData[this.beatIndex];
         for(let i = 0; i < currentData.length; i++){
             const beat = currentData[i];
@@ -165,6 +174,7 @@ class GameplayScene extends Phaser.Scene {
     startLevel = () => {
         this.song.play();
         this.state = "LOADING";
+        this.beatText.visible = false;
     }
 
     gameOver = () => {
@@ -173,9 +183,15 @@ class GameplayScene extends Phaser.Scene {
         this.beatTimer.remove();
         this.player.onDeath();
         this.playerMirrored.onDeath();
+        this.beatText.visible = true;
         this.beatText.setText("Game over!");
         this.mainMenuButton.visible = true;
         this.restartButton.visible = true;
+    }
+
+    onLevelFinished = () => {
+        this.scene.stop();
+        this.scene.start("MainMenu");
     }
 
     damagePlayer = () => {
