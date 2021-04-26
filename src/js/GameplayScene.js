@@ -29,15 +29,13 @@ class GameplayScene extends Phaser.Scene {
 
         this.beatIndex = 0;
 
-        if(data){
-            console.log("data:", data);
+        if(data && data.jsonObject && data.audioData){
             // Read level data
             const jsonData = data.jsonObject;
-            console.log(jsonData);
             // First read the json data
             this.bpm = jsonData.bpm;
             this.beatLength = 60 / this.bpm;
-            this.levelData = jsonData.levelData; // TODO read level data more correctly (durations must be calculated based on continuous sequences of a same tile)
+            this.levelData = jsonData.levelData;
 
             // Next read the audio data
             const audioArrayBuffer = await data.audioData.arrayBuffer();
@@ -56,14 +54,19 @@ class GameplayScene extends Phaser.Scene {
             this.bpm = 100;
             this.beatLength = 60 / this.bpm;
             this.levelData = [
-                [{x: 0, y: 0, type: 1, duration: this.beatLength / 2}, {x: 2, y: 1, type: 1, duration: this.beatLength / 2}],
-                [{x: 1, y: 0, type: 1, duration: this.beatLength / 2}, {x: 3, y: 1, type: 1, duration: this.beatLength / 2}],
-                [{x: 0, y: 0, type: 2, duration: this.beatLength}, {x: 2, y: 1, type: 2, duration: this.beatLength}],
-                [{x: 1, y: 0, type: 2, duration: this.beatLength}, {x: 3, y: 1, type: 2, duration: this.beatLength}],
+                [{x: 0, y: 0, type: 1}, {x: 2, y: 1, type: 1}],
+                [{x: 1, y: 0, type: 1}, {x: 3, y: 1, type: 1}],
+                [{x: 0, y: 0, type: 2}, {x: 2, y: 1, type: 2}],
+                [{x: 1, y: 0, type: 2}, {x: 3, y: 1, type: 2}],
                 [],
                 [],
                 []
             ];
+            this.startTimer = this.time.addEvent({
+                delay: 3000,
+                callback: this.startLevel,
+                callbackScope: this
+            });
         }
 
         // Grid setup with laser tiles
@@ -110,11 +113,12 @@ class GameplayScene extends Phaser.Scene {
                 this.state = "GAMEPLAY";
                 this.beatText.setText("1");
                 this.beatTimer = this.time.addEvent({
-                    delay: 60000 / this.bpm / 4,
+                    delay: 60000 / this.bpm / 2,
                     callback: this.runBeat,
                     callbackScope: this,
                     loop: true
                 });
+                this.runBeat();
             }
         }
         else if(this.state === "GAMEPLAY"){
@@ -145,11 +149,11 @@ class GameplayScene extends Phaser.Scene {
         const currentData = this.levelData[this.beatIndex];
         for(let i = 0; i < currentData.length; i++){
             const beat = currentData[i];
-            if(beat.type === 1){ // Telegraph/flash
-                this.levelTiles[beat.x][beat.y].flash(beat.duration*1000);
+            if(beat.type === 1){ // Telegraph/flash, hard-coded to last half a beat
+                this.levelTiles[beat.x][beat.y].flash((this.beatLength / 2) * 1000);
             }
-            else if(beat.type === 2){ // Laser
-                this.levelTiles[beat.x][beat.y].shootLaser(beat.duration*1000);
+            else if(beat.type === 2){ // Laser, hard-coded to last almost a full beat
+                this.levelTiles[beat.x][beat.y].shootLaser((this.beatLength) * 1000 * 0.9);
             }
         }
 

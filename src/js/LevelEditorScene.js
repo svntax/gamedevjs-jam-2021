@@ -22,7 +22,8 @@ class LevelEditorScene extends Phaser.Scene {
         this.add.rectangle(0, 0, this.sys.game.canvas.width, this.sys.game.canvas.height, LevelEditorScene.BG_COLOR).setOrigin(0);
 
         this.numberOfBeats = 68; // NOTE: Number of beats in intro test song
-        this.numberOfSubdivisions = this.numberOfBeats * 4; // Sixteenth notes are the smallest subdivision
+        // *CUT FEATURE
+        this.numberOfSubdivisions = this.numberOfBeats * 1; // Eigth notes are the smallest subdivision
 
         // Playback controls UI
         this.playButton = this.createButton(this, "Play");
@@ -296,7 +297,7 @@ class LevelEditorScene extends Phaser.Scene {
                         sceneRef.beatTimer.remove();
                     }
                     sceneRef.beatTimer = sceneRef.time.addEvent({
-                        delay: 60000 / sceneRef.bpm / 4,
+                        delay: 60000 / sceneRef.bpm,
                         callback: sceneRef.runBeat,
                         callbackScope: sceneRef,
                         loop: true,
@@ -332,13 +333,7 @@ class LevelEditorScene extends Phaser.Scene {
         for(let i = 0; i < this.numberOfSubdivisions; i++){
             this.levelData[i] = [];
         }
-        /*this.levelData = [
-            [{x: 0, y: 0, type: 1, duration: this.beatLength / 2}, {x: 2, y: 1, type: 1, duration: this.beatLength / 2}],
-            [{x: 1, y: 0, type: 1, duration: this.beatLength / 2}, {x: 3, y: 1, type: 1, duration: this.beatLength / 2}],
-            [{x: 0, y: 0, type: 2, duration: this.beatLength}, {x: 2, y: 1, type: 2, duration: this.beatLength}],
-            [{x: 1, y: 0, type: 2, duration: this.beatLength}, {x: 3, y: 1, type: 2, duration: this.beatLength}],
-            [],[],[],[],[],[],[],[],[],
-        ];*/
+        // TODO: load tutorial level data
         this.beatIndex = 0;
 
         this.gridOriginX = 64;
@@ -366,7 +361,7 @@ class LevelEditorScene extends Phaser.Scene {
             if(!this.song.isDecoding){
                 this.state = "PLAYING";
                 this.beatTimer = this.time.addEvent({
-                    delay: 60000 / this.bpm / 4,
+                    delay: 60000 / this.bpm,
                     callback: this.runBeat,
                     callbackScope: this,
                     loop: true
@@ -581,13 +576,12 @@ class LevelEditorScene extends Phaser.Scene {
             }
             else{
                 this.beatTimer = this.time.addEvent({
-                    delay: 60000 / this.bpm / 4,
+                    delay: 60000 / this.bpm,
                     callback: this.runBeat,
                     callbackScope: this,
                     loop: true
                 });
                 this.runBeat();
-                this.decrementBeatIndex();
             }
         }
         else{
@@ -595,14 +589,13 @@ class LevelEditorScene extends Phaser.Scene {
                 this.beatTimer.remove();
             }
             this.beatTimer = this.time.addEvent({
-                delay: 60000 / this.bpm / 4,
+                delay: 60000 / this.bpm,
                 callback: this.runBeat,
                 callbackScope: this,
                 loop: true
             });
             this.song.play();
             this.runBeat();
-            this.decrementBeatIndex();
         }
     }
 
@@ -653,7 +646,7 @@ class LevelEditorScene extends Phaser.Scene {
         }
         else{
             if(tileType !== 0){
-                tileData = { x: tileX, y: tileY, type: tileType, duration: this.beatLength / 2 };
+                tileData = { x: tileX, y: tileY, type: tileType };
                 currentData.push(tileData);
             }
         }
@@ -661,7 +654,7 @@ class LevelEditorScene extends Phaser.Scene {
 
     setNumberOfBeats = (amount) => {
         this.numberOfBeats = amount;
-        this.numberOfSubdivisions = this.numberOfBeats * 4;
+        this.numberOfSubdivisions = this.numberOfBeats * 1;
     }
 
     createButton = (scene, text) => {
