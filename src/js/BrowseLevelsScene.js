@@ -3,15 +3,15 @@ import { createButton } from "./utils.js";
 
 class BrowseLevelsScene extends Phaser.Scene {
 
-    constructor() {
+    constructor(){
         super("BrowseLevelsMenu");
     }
 
-    preload() {
+    preload(){
 
     }
 
-    async create() {
+    async create(){
         const response = await window.contract.hello();
         console.log("Contract response:", response);
 
@@ -34,9 +34,23 @@ class BrowseLevelsScene extends Phaser.Scene {
                 this.scene.start("MainMenu");
             }
         });
+
+        this.loadLevelsMetadata();
     }
 
-    update() {
+    loadLevelsMetadata = async () => {
+        // TODO temp, remove later
+        if(window.cidPath){
+            const chunks = [];
+            for await (const chunk of window.ipfsNode.cat("/ipfs/" + window.cidPath)) {
+                chunks.push(chunk);
+            }
+            let testData = JSON.parse(chunks);
+            this.add.text(400, 200, testData.name, {fontSize: "32px"});
+        }
+    }
+
+    update(){
     }
 
 }

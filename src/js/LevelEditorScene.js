@@ -1,3 +1,4 @@
+import IPFS from "ipfs-core/src/components";
 import "phaser";
 import FloorTileDebug from "./FloorTileDebug";
 
@@ -8,11 +9,11 @@ class LevelEditorScene extends Phaser.Scene {
     static COLOR_DARK = 0x260e04;
     static BG_COLOR = 0x2a3950;
 
-    constructor(){
+    constructor() {
         super("LevelEditor");
     }
 
-    create(){
+    create() {
         const sceneRef = this;
 
         this.game.events.addListener(Phaser.Core.Events.BLUR, this.onBlur, this);
@@ -38,7 +39,7 @@ class LevelEditorScene extends Phaser.Scene {
             ],
 
             space: {
-                left: 10, right: 10, top: 10, bottom: 10, 
+                left: 10, right: 10, top: 10, bottom: 10,
                 item: 4
             },
             expand: true
@@ -46,22 +47,22 @@ class LevelEditorScene extends Phaser.Scene {
         .layout();
 
         this.playbackButtons.on("button.click", (button, index, pointer, event) => {
-            if(button.text === "Play"){
+            if (button.text === "Play") {
                 button.text = "Pause";
                 this.onPlayClicked();
             }
-            else if(button.text === "Pause"){
+            else if (button.text === "Pause") {
                 button.text = "Play";
                 this.onPauseClicked();
             }
-            else if(button.text === "Stop"){
+            else if (button.text === "Stop") {
                 this.onStopClicked();
                 this.playButton.text = "Play";
             }
-            else if(button.text === "<-"){
+            else if (button.text === "<-") {
                 this.moveBeatLeft();
             }
-            else if(button.text === "->"){
+            else if (button.text === "->") {
                 this.moveBeatRight();
             }
         });
@@ -85,7 +86,7 @@ class LevelEditorScene extends Phaser.Scene {
             ],
 
             space: {
-                left: 10, right: 10, top: 10, bottom: 10, 
+                left: 10, right: 10, top: 10, bottom: 10,
                 item: 4
             },
             expand: true
@@ -99,7 +100,7 @@ class LevelEditorScene extends Phaser.Scene {
             // Do nothing, this background is just meant to block the mouse from clicking on anything behind it
         });
         this.loadingBg.visible = false;
-        this.loadingBgText = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY, "Loading...", {fontSize: 32});
+        this.loadingBgText = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY, "Loading...", { fontSize: 32 });
         this.loadingBgText.setOrigin(0.5);
         this.loadingBgText.visible = false;
         this.loadingBgText.depth = 40;
@@ -115,7 +116,7 @@ class LevelEditorScene extends Phaser.Scene {
             // Set this.song to load the uploaded file
             sceneRef.loadingBg.visible = true;
             sceneRef.loadingBgText.visible = true;
-            if(sceneRef.cache.audio.has("uploadedSong")){
+            if (sceneRef.cache.audio.has("uploadedSong")) {
                 sceneRef.cache.audio.remove("uploadedSong");
             }
             console.log(files[0]);
@@ -145,14 +146,14 @@ class LevelEditorScene extends Phaser.Scene {
             sceneRef.loadingBgText.visible = true;
             // Read the json file
             const objectURL = URL.createObjectURL(files[0]);
-            if(sceneRef.cache.json.has("levelData")){
+            if (sceneRef.cache.json.has("levelData")) {
                 sceneRef.cache.json.remove("levelData");
             }
             sceneRef.load.json("levelData", objectURL);
             sceneRef.load.once("complete", () => {
                 const jsonData = sceneRef.cache.json.get("levelData");
                 // First validate the json data
-                if(!jsonData || !jsonData.numBeats || !jsonData.bpm || !jsonData.name || !jsonData.levelData){
+                if (!jsonData || !jsonData.numBeats || !jsonData.bpm || !jsonData.name || !jsonData.levelData) {
                     sceneRef.loadingBgText.setText("Error: could not load json data");
                     sceneRef.time.delayedCall(2000, () => {
                         sceneRef.loadingBg.visible = false;
@@ -183,13 +184,13 @@ class LevelEditorScene extends Phaser.Scene {
         });
 
         this.menuButtons.on("button.click", (button, index, pointer, event) => {
-            if(button.text === "Exit"){
+            if (button.text === "Exit") {
                 this.onExitClicked();
             }
-            else if(button.text === "Save"){
+            else if (button.text === "Save") {
                 this.onSaveClicked();
             }
-            else if(button.text === "Publish"){
+            else if (button.text === "Publish") {
                 this.onPublishClicked();
             }
         });
@@ -209,13 +210,13 @@ class LevelEditorScene extends Phaser.Scene {
         })
         .resize(440, 40)
         .setOrigin(0.5)
-        .on("textchange", function(inputText){
+        .on("textchange", function (inputText) {
             sceneRef.levelName = inputText.text;
         });
 
         this.bpm = 100;
-        
-        this.bpmLabel = this.add.text(484, 376, "BPM", {fontSize: "24px"});
+
+        this.bpmLabel = this.add.text(484, 376, "BPM", { fontSize: "24px" });
         this.bpmInput = this.add.rexInputText(478, 370, 76, 100, {
             id: "bpmInput",
             type: "number",
@@ -223,7 +224,7 @@ class LevelEditorScene extends Phaser.Scene {
             fontSize: "24px",
         })
         .setOrigin(0) // NOTE: must be 0 due to weird offset issue in Chrome
-        .on("textchange", function(inputText){
+        .on("textchange", function (inputText){
             let newBpm = parseInt(inputText.text);
             if(newBpm <= 0){
                 newBpm = 1;
@@ -234,37 +235,37 @@ class LevelEditorScene extends Phaser.Scene {
             }
         });
         this.bpmInput.node.addEventListener("keypress", function (evt) {
-            if(evt.which != 8 && evt.which != 0 && evt.which < 48 || evt.which > 57) {
+            if(evt.which != 8 && evt.which != 0 && evt.which < 48 || evt.which > 57){
                 evt.preventDefault();
             }
         });
 
-        this.songLengthLabel = this.add.text(578, 352, "Total\nBeats", {fontSize: "24px"});
+        this.songLengthLabel = this.add.text(578, 352, "Total\nBeats", { fontSize: "24px" });
         this.songLengthInput = this.add.rexInputText(576, 370, 76, 100, {
             id: "songLengthInput",
             type: "number",
             text: "68",
             fontSize: "24px",
         })
-        .setOrigin(0) // NOTE: must be 0 due to weird offset issue in Chrome
-        .on("textchange", function(inputText){
-            let newLength = parseInt(inputText.text);
-            if(newLength <= 0){
-                newLength = 1;
-                sceneRef.bpmInput.text = "1";
-            }
-            else{
-                sceneRef.setNumberOfBeats(parseInt(inputText.text));
-                sceneRef.updateLevelDataLength();
-            }
-        });
+            .setOrigin(0) // NOTE: must be 0 due to weird offset issue in Chrome
+            .on("textchange", function (inputText){
+                let newLength = parseInt(inputText.text);
+                if(newLength <= 0){
+                    newLength = 1;
+                    sceneRef.bpmInput.text = "1";
+                }
+                else{
+                    sceneRef.setNumberOfBeats(parseInt(inputText.text));
+                    sceneRef.updateLevelDataLength();
+                }
+            });
         this.bpmInput.node.addEventListener("keypress", function (evt) {
-            if(evt.which != 8 && evt.which != 0 && evt.which < 48 || evt.which > 57) {
+            if(evt.which != 8 && evt.which != 0 && evt.which < 48 || evt.which > 57){
                 evt.preventDefault();
             }
         });
 
-        this.beatIndexLabel = this.add.text(128, 508, "0001", {fontSize: "24px", align: "left"});
+        this.beatIndexLabel = this.add.text(128, 508, "0001", { fontSize: "24px", align: "left" });
 
         // Timeline UI
         this.timelineCursor = this.rexUI.add.roundRectangle(0, 0, 0, 0, 10, LevelEditorScene.COLOR_PRIMARY);
@@ -305,7 +306,7 @@ class LevelEditorScene extends Phaser.Scene {
                     });
                     const targetSeek = sceneRef.song.duration * (subdivisionIndex / sceneRef.numberOfSubdivisions);
                     sceneRef.song.stop();
-                    sceneRef.song.play({seek: targetSeek});
+                    sceneRef.song.play({ seek: targetSeek });
                     sceneRef.song.pause();
                     sceneRef.playButton.setText("Play");
                     sceneRef.readCurrentBeatData();
@@ -313,7 +314,7 @@ class LevelEditorScene extends Phaser.Scene {
             },
 
         })
-        .layout();
+            .layout();
 
         this.syncedTimelineSlider = this.rexUI.add.slider({
             x: this.cameras.main.centerX,
@@ -324,7 +325,7 @@ class LevelEditorScene extends Phaser.Scene {
             thumb: this.syncedTimelineCursor,
             input: "none",
         })
-        .layout();
+            .layout();
 
         this.song = this.sound.add("first_song");
 
@@ -353,7 +354,7 @@ class LevelEditorScene extends Phaser.Scene {
             for(let y = 0; y < this.gridHeight; y++){
                 const color = x < 10 ? 0xe3e3e3 : 0x7fb2f0;
 
-                let floorTile = new FloorTileDebug(this, this.gridOriginX + x*this.tileSize, this.gridOriginY + y*this.tileSize);
+                let floorTile = new FloorTileDebug(this, this.gridOriginX + x * this.tileSize, this.gridOriginY + y * this.tileSize);
                 floorTile.hitbox.fillColor = color;
                 this.levelTiles[x][y] = floorTile;
             }
@@ -362,7 +363,7 @@ class LevelEditorScene extends Phaser.Scene {
         this.state = "EDITING";
     }
 
-    update(){
+    update() {
         if(this.state === "LOADING"){
             if(!this.song.isDecoding){
                 this.state = "PLAYING";
@@ -442,7 +443,7 @@ class LevelEditorScene extends Phaser.Scene {
     updateLevelDataLength = () => {
         let currentLength = this.levelData.length;
         if(currentLength < this.numberOfSubdivisions){
-            while(this.levelData.length < this.numberOfSubdivisions){
+            while(this.levelData.length < this.numberOfSubdivisions) {
                 this.levelData.push([]);
             }
         }
@@ -462,7 +463,7 @@ class LevelEditorScene extends Phaser.Scene {
 
     onSaveClicked = () => {
         const name = this.levelName;
-        if(name){
+        if (name) {
             const jsonObject = {
                 "name": name,
                 "bpm": this.bpm,
@@ -470,12 +471,12 @@ class LevelEditorScene extends Phaser.Scene {
                 "levelData": this.levelData
             };
             const jsonString = JSON.stringify(jsonObject);
-            const blob = new Blob([jsonString], {type: "application/json"});
+            const blob = new Blob([jsonString], { type: "application/json" });
             // https://stackoverflow.com/questions/3665115/how-to-create-a-file-in-memory-for-user-to-download-but-not-through-server
-            if(window.navigator.msSaveOrOpenBlob) {
+            if (window.navigator.msSaveOrOpenBlob) {
                 window.navigator.msSaveBlob(blob, name);
             }
-            else{
+            else {
                 let elem = window.document.createElement("a");
                 elem.href = URL.createObjectURL(blob);
                 elem.download = name;
@@ -485,22 +486,27 @@ class LevelEditorScene extends Phaser.Scene {
                 URL.revokeObjectURL(blob);
             }
         }
-        else{
+        else {
             this.showMessagePopup("Missing name for your level!", 2000);
         }
     }
 
-    onPublishClicked = () => {
+    onPublishClicked = async () => {
+        // Must be logged in to NEAR to be able to publish levels
+        if (!window.walletConnection.isSignedIn()) {
+            this.showMessagePopup("You must be signed in to NEAR in order to publish levels.", 2000);
+            return;
+        }
         // Verify that we have the level name, level data, and song uploaded
-        if(!this.levelName){
+        if (!this.levelName) {
             this.showMessagePopup("Missing name for your level!", 2000);
             return;
         }
-        if(!this.song){
+        if (!this.song) {
             this.showMessagePopup("Missing song upload!", 2000);
             return;
         }
-        if(!this.levelData || this.levelData.length === 0){
+        if (!this.levelData || this.levelData.length === 0) {
             this.showMessagePopup("No level data!", 2000);
             return;
         }
@@ -509,11 +515,27 @@ class LevelEditorScene extends Phaser.Scene {
             "name": this.levelName,
             "bpm": this.bpm,
             "numBeats": this.numberOfBeats,
-            "levelData": this.levelData
+            "levelData": this.levelData,
+            "author": window.accountId
         };
         const jsonString = JSON.stringify(jsonObject);
-        const levelDataBlob = new Blob([jsonString], {type: "application/json"});
-        console.log(levelDataBlob);
+        const cid = await window.ipfsNode.add(jsonString);
+        console.log("Level data cid:", cid);
+        // TODO: temporary, remove later
+        window.cidPath = cid.path;
+
+        // Test if json was actually uploaded, TODO Remove later
+        const chunks = [];
+        for await (const chunk of window.ipfsNode.cat("/ipfs/" + cid.path)) {
+            chunks.push(chunk);
+        }
+        console.log(chunks);
+        let testData = JSON.parse(chunks);
+        console.log("JSON object after downloading from IPFS:", testData);
+
+        //const levelDataBlob = new Blob([jsonString], {type: "application/json"});
+        //console.log(levelDataBlob);
+
         if(this.cache.audio.has("uploadedSong")){
             console.log(this.cache.audio.get("uploadedSong"));
         }
@@ -545,19 +567,19 @@ class LevelEditorScene extends Phaser.Scene {
         this.runBeat();
         this.setBeatIndex(0);
         this.state = "EDITING";
-        if(this.beatTimer){
+        if (this.beatTimer) {
             this.beatTimer.remove();
         }
     }
 
     onPlayClicked = () => {
         this.state = "PLAYING";
-        if(this.song.isPaused){
+        if (this.song.isPaused) {
             this.song.resume();
-            if(this.beatTimer){
+            if (this.beatTimer) {
                 this.beatTimer.paused = false;
             }
-            else{
+            else {
                 this.beatTimer = this.time.addEvent({
                     delay: 60000 / this.bpm / 4,
                     callback: this.runBeat,
@@ -568,8 +590,8 @@ class LevelEditorScene extends Phaser.Scene {
                 this.decrementBeatIndex();
             }
         }
-        else{
-            if(this.beatTimer){
+        else {
+            if (this.beatTimer) {
                 this.beatTimer.remove();
             }
             this.beatTimer = this.time.addEvent({
@@ -585,7 +607,7 @@ class LevelEditorScene extends Phaser.Scene {
     }
 
     onPauseClicked = () => {
-        if(this.beatTimer){
+        if (this.beatTimer) {
             this.beatTimer.paused = true;
         }
         this.song.pause();
@@ -593,7 +615,7 @@ class LevelEditorScene extends Phaser.Scene {
     }
 
     moveBeatLeft = () => {
-        if(this.beatIndex === 0){
+        if (this.beatIndex === 0) {
             return;
         }
         this.beatIndex--;
@@ -602,7 +624,7 @@ class LevelEditorScene extends Phaser.Scene {
     }
 
     moveBeatRight = () => {
-        if(this.beatIndex >= this.numberOfSubdivisions){
+        if (this.beatIndex >= this.numberOfSubdivisions) {
             return;
         }
         this.beatIndex++;
@@ -611,7 +633,7 @@ class LevelEditorScene extends Phaser.Scene {
     }
 
     updateTileData = (tileX, tileY, tileType) => {
-        if(this.beatIndex < 0 || this.beatIndex >= this.levelData.length){
+        if (this.beatIndex < 0 || this.beatIndex >= this.levelData.length) {
             console.log("beatIndex is out of bounds, this shouldn't happen!");
             return;
         }
@@ -619,25 +641,25 @@ class LevelEditorScene extends Phaser.Scene {
         // Check if tile exists
         let tileExists = false;
         let tileData = null;
-        for(let i = 0; i < currentData.length && !tileExists; i++){
+        for (let i = 0; i < currentData.length && !tileExists; i++) {
             const data = currentData[i];
-            if(data.x === tileX && data.y === tileY){
+            if (data.x === tileX && data.y === tileY) {
                 tileExists = true;
                 tileData = data;
             }
         }
-        if(tileData){
-            if(tileType === 0){
+        if (tileData) {
+            if (tileType === 0) {
                 // TODO: remove data? just change the type to 0?
                 tileData.type = 0;
             }
-            else{
+            else {
                 tileData.type = tileType;
             }
         }
-        else{
-            if(tileType !== 0){
-                tileData = {x: tileX, y: tileY, type: tileType, duration: this.beatLength / 2};
+        else {
+            if (tileType !== 0) {
+                tileData = { x: tileX, y: tileY, type: tileType, duration: this.beatLength / 2 };
                 currentData.push(tileData);
             }
         }
@@ -665,20 +687,20 @@ class LevelEditorScene extends Phaser.Scene {
     }
 
     onBlur = () => {
-        if(this.beatTimer){
+        if (this.beatTimer) {
             this.beatTimer.paused = true;
         }
-        if(this.song){
+        if (this.song) {
             this.song.pause();
         }
     }
 
     onFocus = () => {
-        if(this.playButton.text === "Pause"){
-            if(this.beatTimer){
+        if (this.playButton.text === "Pause") {
+            if (this.beatTimer) {
                 this.beatTimer.paused = false;
             }
-            if(this.song){
+            if (this.song) {
                 this.song.resume();
             }
         }

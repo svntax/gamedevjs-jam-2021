@@ -2,6 +2,7 @@ import "phaser";
 import "regenerator-runtime/runtime";
 
 import IPFS from "ipfs-core";
+import uint8ArrayConcat from "uint8arrays/concat";
 
 import { initContract, login, logout } from "./js/utils";
 
@@ -73,11 +74,9 @@ class Game extends Phaser.Game {
 window.onload = async function () {
     const game = new Game();
 
-    const ipfsNode = await IPFS.create();
-    const fileAdded = await ipfsNode.files.write("/hello.txt", "Hello World 101", { create: true });
-    const stats = await ipfsNode.files.stat("/");
-    console.log(stats);
-    // QmXgZAUWd8yo4tvjBETqzUy3wLx5YRzuDwUQnBwRGrAmAo
+    window.ipfsNode = await IPFS.create();
+    //const stats = await ipfsNode.files.stat("/");
+    //console.log(stats);
 };
 
 function signedOutFlow() {
