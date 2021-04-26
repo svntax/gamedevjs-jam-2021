@@ -122,13 +122,11 @@ class LevelEditorScene extends Phaser.Scene {
             console.log(files[0]);
             const objectURL = URL.createObjectURL(files[0]);
             sceneRef.load.audio("uploadedSong", objectURL);
-            sceneRef.load.once("load", (fileObj) => {
-                console.log("FileObj", fileObj);
-            });
             sceneRef.load.once("complete", () => {
                 sceneRef.song = sceneRef.sound.add("uploadedSong");
                 sceneRef.loadingBg.visible = false;
                 sceneRef.loadingBgText.visible = false;
+                sceneRef.songFile = files[0];
                 URL.revokeObjectURL(files[0]);
             });
             sceneRef.load.start();
@@ -536,12 +534,45 @@ class LevelEditorScene extends Phaser.Scene {
         //const levelDataBlob = new Blob([jsonString], {type: "application/json"});
         //console.log(levelDataBlob);
 
+        let audioDataToUpload;
         if(this.cache.audio.has("uploadedSong")){
-            console.log(this.cache.audio.get("uploadedSong"));
+            console.log("File to publish is:", this.songFile);
+            audioDataToUpload = this.songFile;
         }
         else{
-            console.log(this.cache.audio.get("first_song"));
+            console.log("Not uploaded song yet");
+            const audioBlob = await (await fetch("assets/first_song.mp3")).blob();
+            console.log(audioBlob);
+            audioDataToUpload = audioBlob;
         }
+        const audioCid = await window.ipfsNode.add(audioDataToUpload);
+        console.log("Audio data cid:", audioCid);
+
+        // Test if audio data was actually uploaded, TODO remove later
+        const audioChunks = [];
+        for await (const chunk of window.ipfsNode.cat("/ipfs/" + audioCid.path)){
+            audioChunks.push(chunk);
+        }
+        const audioContext = new AudioContext();
+        const fileReader = new FileReader();
+        // Set up file reader on loaded end event
+        fileReader.onloadend = () => {
+            const arrayBuffer = fileReader.result;
+            // Convert array buffer into audio buffer
+            audioContext.decodeAudioData(arrayBuffer, (audioBuffer) => {
+                console.log("Audio data after downloading and decoding:", audioBuffer);
+            });
+        }
+        //Load blob
+        const testBlob = new Blob(audioChunks);
+        const testArrayBuffer = await testBlob.arrayBuffer();
+        console.log("Audio data after downloading:", testArrayBuffer);
+        this.sound.decodeAudio("testSong", testArrayBuffer);
+        this.sound.on("decodedall", () => {
+            console.log("Decoded downlaoded audio!");
+            let testSong = this.sound.add("testSong");
+            testSong.play();
+        })
     }
 
     showMessagePopup = (message, duration) => {
@@ -687,20 +718,20 @@ class LevelEditorScene extends Phaser.Scene {
     }
 
     onBlur = () => {
-        if (this.beatTimer) {
+        if(this.beatTimer){
             this.beatTimer.paused = true;
         }
-        if (this.song) {
+        if(this.song){
             this.song.pause();
         }
     }
 
     onFocus = () => {
-        if (this.playButton.text === "Pause") {
-            if (this.beatTimer) {
+        if(this.playButton.text === "Pause"){
+            if(this.beatTimer){
                 this.beatTimer.paused = false;
             }
-            if (this.song) {
+            if(this.song){
                 this.song.resume();
             }
         }
