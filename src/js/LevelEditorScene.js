@@ -7,7 +7,7 @@ class LevelEditorScene extends Phaser.Scene {
     static COLOR_PRIMARY = 0x4e342e;
     static COLOR_LIGHT = 0x7b5e57;
     static COLOR_DARK = 0x260e04;
-    static BG_COLOR = 0x2a3950;
+    static BG_COLOR = 0x2c3e50;
 
     constructor() {
         super("LevelEditor");
@@ -508,6 +508,11 @@ class LevelEditorScene extends Phaser.Scene {
             this.showMessagePopup("No level data!", 2000);
             return;
         }
+
+        this.loadingBg.visible = true;
+        this.loadingBgText.visible = true;
+        this.loadingBgText.setText("Publishing your level...");
+
         // Create json data file
         const jsonObject = {
             "name": this.levelName,
@@ -518,61 +523,25 @@ class LevelEditorScene extends Phaser.Scene {
         };
         const jsonString = JSON.stringify(jsonObject);
         const cid = await window.ipfsNode.add(jsonString);
-        console.log("Level data cid:", cid);
-        // TODO: temporary, remove later
-        window.cidPath = cid.path;
-
-        // Test if json was actually uploaded, TODO Remove later
-        const chunks = [];
-        for await (const chunk of window.ipfsNode.cat("/ipfs/" + cid.path)) {
-            chunks.push(chunk);
-        }
-        console.log(chunks);
-        let testData = JSON.parse(chunks);
-        console.log("JSON object after downloading from IPFS:", testData);
-
-        //const levelDataBlob = new Blob([jsonString], {type: "application/json"});
-        //console.log(levelDataBlob);
 
         let audioDataToUpload;
         if(this.cache.audio.has("uploadedSong")){
-            console.log("File to publish is:", this.songFile);
             audioDataToUpload = this.songFile;
         }
         else{
             console.log("Not uploaded song yet");
             const audioBlob = await (await fetch("assets/first_song.mp3")).blob();
-            console.log(audioBlob);
             audioDataToUpload = audioBlob;
         }
         const audioCid = await window.ipfsNode.add(audioDataToUpload);
-        console.log("Audio data cid:", audioCid);
 
-        // Test if audio data was actually uploaded, TODO remove later
-        const audioChunks = [];
-        for await (const chunk of window.ipfsNode.cat("/ipfs/" + audioCid.path)){
-            audioChunks.push(chunk);
-        }
-        const audioContext = new AudioContext();
-        const fileReader = new FileReader();
-        // Set up file reader on loaded end event
-        fileReader.onloadend = () => {
-            const arrayBuffer = fileReader.result;
-            // Convert array buffer into audio buffer
-            audioContext.decodeAudioData(arrayBuffer, (audioBuffer) => {
-                console.log("Audio data after downloading and decoding:", audioBuffer);
-            });
-        }
-        //Load blob
-        const testBlob = new Blob(audioChunks);
-        const testArrayBuffer = await testBlob.arrayBuffer();
-        console.log("Audio data after downloading:", testArrayBuffer);
-        this.sound.decodeAudio("testSong", testArrayBuffer);
-        this.sound.on("decodedall", () => {
-            console.log("Decoded downlaoded audio!");
-            let testSong = this.sound.add("testSong");
-            testSong.play();
-        })
+        // Upload level data and audio paths to NEAR
+        await window.contract.addLevel({
+            "levelHash": cid.path,
+            "audioHash": audioCid.path,
+            "levelName": this.levelName
+        });
+        this.showMessagePopup("Successfully published your level!", 1500);
     }
 
     showMessagePopup = (message, duration) => {
@@ -605,12 +574,12 @@ class LevelEditorScene extends Phaser.Scene {
 
     onPlayClicked = () => {
         this.state = "PLAYING";
-        if (this.song.isPaused) {
+        if(this.song.isPaused){
             this.song.resume();
-            if (this.beatTimer) {
+            if(this.beatTimer){
                 this.beatTimer.paused = false;
             }
-            else {
+            else{
                 this.beatTimer = this.time.addEvent({
                     delay: 60000 / this.bpm / 4,
                     callback: this.runBeat,
@@ -621,8 +590,8 @@ class LevelEditorScene extends Phaser.Scene {
                 this.decrementBeatIndex();
             }
         }
-        else {
-            if (this.beatTimer) {
+        else{
+            if(this.beatTimer){
                 this.beatTimer.remove();
             }
             this.beatTimer = this.time.addEvent({
@@ -638,7 +607,7 @@ class LevelEditorScene extends Phaser.Scene {
     }
 
     onPauseClicked = () => {
-        if (this.beatTimer) {
+        if(this.beatTimer){
             this.beatTimer.paused = true;
         }
         this.song.pause();
@@ -646,7 +615,7 @@ class LevelEditorScene extends Phaser.Scene {
     }
 
     moveBeatLeft = () => {
-        if (this.beatIndex === 0) {
+        if(this.beatIndex === 0){
             return;
         }
         this.beatIndex--;
@@ -655,7 +624,7 @@ class LevelEditorScene extends Phaser.Scene {
     }
 
     moveBeatRight = () => {
-        if (this.beatIndex >= this.numberOfSubdivisions) {
+        if(this.beatIndex >= this.numberOfSubdivisions){
             return;
         }
         this.beatIndex++;
@@ -664,7 +633,7 @@ class LevelEditorScene extends Phaser.Scene {
     }
 
     updateTileData = (tileX, tileY, tileType) => {
-        if (this.beatIndex < 0 || this.beatIndex >= this.levelData.length) {
+        if(this.beatIndex < 0 || this.beatIndex >= this.levelData.length){
             console.log("beatIndex is out of bounds, this shouldn't happen!");
             return;
         }
@@ -672,24 +641,24 @@ class LevelEditorScene extends Phaser.Scene {
         // Check if tile exists
         let tileExists = false;
         let tileData = null;
-        for (let i = 0; i < currentData.length && !tileExists; i++) {
+        for(let i = 0; i < currentData.length && !tileExists; i++){
             const data = currentData[i];
-            if (data.x === tileX && data.y === tileY) {
+            if(data.x === tileX && data.y === tileY){
                 tileExists = true;
                 tileData = data;
             }
         }
-        if (tileData) {
-            if (tileType === 0) {
+        if(tileData){
+            if(tileType === 0){
                 // TODO: remove data? just change the type to 0?
                 tileData.type = 0;
             }
-            else {
+            else{
                 tileData.type = tileType;
             }
         }
-        else {
-            if (tileType !== 0) {
+        else{
+            if(tileType !== 0){
                 tileData = { x: tileX, y: tileY, type: tileType, duration: this.beatLength / 2 };
                 currentData.push(tileData);
             }
