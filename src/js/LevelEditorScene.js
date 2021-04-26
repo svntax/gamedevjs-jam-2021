@@ -185,7 +185,7 @@ class LevelEditorScene extends Phaser.Scene {
             if (button.text === "Exit") {
                 this.onExitClicked();
             }
-            else if (button.text === "Save") {
+            else if (button.text === "Save Data") {
                 this.onSaveClicked();
             }
             else if (button.text === "Publish") {
@@ -454,7 +454,6 @@ class LevelEditorScene extends Phaser.Scene {
 
     onExitClicked = () => {
         this.song.stop();
-        // TODO: confirm prompt, also check unsaved progress
         this.clearData();
         this.scene.start("MainMenu");
     }
@@ -475,6 +474,7 @@ class LevelEditorScene extends Phaser.Scene {
                 window.navigator.msSaveBlob(blob, name);
             }
             else {
+                console.log("Saving");
                 let elem = window.document.createElement("a");
                 elem.href = URL.createObjectURL(blob);
                 elem.download = name;
@@ -492,7 +492,7 @@ class LevelEditorScene extends Phaser.Scene {
     onPublishClicked = async () => {
         // Must be logged in to NEAR to be able to publish levels
         if (!window.walletConnection.isSignedIn()) {
-            this.showMessagePopup("You must be signed in to NEAR in order to publish levels.", 2000);
+            this.showMessagePopup("You must be signed in to NEAR\nin order to publish levels.", 2000);
             return;
         }
         // Verify that we have the level name, level data, and song uploaded
@@ -649,13 +649,7 @@ class LevelEditorScene extends Phaser.Scene {
             }
         }
         if(tileData){
-            if(tileType === 0){
-                // TODO: remove data? just change the type to 0?
-                tileData.type = 0;
-            }
-            else{
-                tileData.type = tileType;
-            }
+            tileData.type = tileType;
         }
         else{
             if(tileType !== 0){

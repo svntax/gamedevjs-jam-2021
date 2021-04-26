@@ -12,6 +12,11 @@ class BrowseLevelsScene extends Phaser.Scene {
     }
 
     async create(){
+        this.headerText = this.add.text(this.cameras.main.centerX, 64, "Player Submitted Levels", { fontSize: 32 });
+        this.headerText.setOrigin(0.5);
+        this.loadingText = this.add.text(this.cameras.main.centerX, 112, "Loading levels...", { fontSize: 24 });
+        this.loadingText.setOrigin(0.5);
+
         this.backButton = createButton(this, "Back");
         this.menuButtons = this.rexUI.add.buttons({
             x: 112, y: 540,
@@ -40,7 +45,6 @@ class BrowseLevelsScene extends Phaser.Scene {
         this.levelsMetadata = [];
         const buttonsArray = [];
         for(let i = 0; i < levels.length; i++){
-            console.log("Level " + i + ":", levels[i]);
             if(!levels[i].levelName || !levels[i].sender){
                 // Invalid entry
                 continue;
@@ -62,9 +66,10 @@ class BrowseLevelsScene extends Phaser.Scene {
         .layout();
 
         this.levelsContainer.on("button.click", (button, index, pointer, event) => {
-            console.log(this.levelsMetadata[index]);
             this.playLevel(index);
         });
+
+        this.loadingText.visible = false;
     }
 
     playLevel = async (index) => {
@@ -75,19 +80,17 @@ class BrowseLevelsScene extends Phaser.Scene {
             chunks.push(chunk);
         }
         let jsonData = JSON.parse(chunks);
+        //console.log("Downloaded json result:", jsonData);
         // Download audio data
         const audioChunks = [];
         for await (const chunk of window.ipfsNode.cat("/ipfs/" + metadata.audioHash)){
             audioChunks.push(chunk);
         }
         const audioBlob = new Blob(audioChunks);
-        const audioArrayBuffer = await audioBlob.arrayBuffer();
-        // TODO: pass blob to new scene instead of decoding here
-        this.sound.decodeAudio("testSong", audioArrayBuffer);
-        this.sound.on("decodedall", () => {
-            console.log("Decoded downloaded audio!");
-            let testSong = this.sound.add("testSong");
-            testSong.play();
+        //console.log("Downloaded audio result:", audioBlob);
+        this.scene.start("Gameplay", {
+            jsonObject: jsonData,
+            audioData: audioBlob
         });
     }
 

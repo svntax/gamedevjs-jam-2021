@@ -1,3 +1,4 @@
+import { JsonRpcProvider } from "near-api-js/lib/providers";
 import "phaser";
 import FloorTile from "./FloorTile";
 import Player from "./Player";
@@ -8,7 +9,7 @@ class GameplayScene extends Phaser.Scene {
         super("Gameplay");
     }
 
-    create(data){
+    async create(data){
         this.game.events.addListener(Phaser.Core.Events.BLUR, this.onBlur, this);
         this.game.events.addListener(Phaser.Core.Events.FOCUS, this.onFocus, this);
 
@@ -26,22 +27,46 @@ class GameplayScene extends Phaser.Scene {
         this.restartButton.setInteractive().on("pointerdown", this.onRestartButtonClicked);
         this.restartButton.visible = false;
 
-        this.bpm = 100;
-        this.song = this.sound.add("first_song");
-
-        // TODO read level data
-        this.beatLength = 60 / this.bpm;
-        this.levelData = [
-            [{x: 0, y: 0, type: 1, duration: this.beatLength / 2}, {x: 2, y: 1, type: 1, duration: this.beatLength / 2}],
-            [{x: 1, y: 0, type: 1, duration: this.beatLength / 2}, {x: 3, y: 1, type: 1, duration: this.beatLength / 2}],
-            [{x: 0, y: 0, type: 2, duration: this.beatLength}, {x: 2, y: 1, type: 2, duration: this.beatLength}],
-            [{x: 1, y: 0, type: 2, duration: this.beatLength}, {x: 3, y: 1, type: 2, duration: this.beatLength}],
-            [],
-            [],
-            []
-        ];
         this.beatIndex = 0;
 
+        if(data){
+            console.log("data:", data);
+            // Read level data
+            const jsonData = data.jsonObject;
+            console.log(jsonData);
+            // First read the json data
+            this.bpm = jsonData.bpm;
+            this.beatLength = 60 / this.bpm;
+            this.levelData = jsonData.levelData; // TODO read level data more correctly (durations must be calculated based on continuous sequences of a same tile)
+
+            // Next read the audio data
+            const audioArrayBuffer = await data.audioData.arrayBuffer();
+            this.sound.decodeAudio("currentSong", audioArrayBuffer);
+            this.sound.on("decodedall", () => {
+                this.song = this.sound.add("currentSong");
+                this.startTimer = this.time.addEvent({
+                    delay: 3000,
+                    callback: this.startLevel,
+                    callbackScope: this
+                });
+            });
+        }
+        else{
+            this.song = this.sound.add("first_song");
+            this.bpm = 100;
+            this.beatLength = 60 / this.bpm;
+            this.levelData = [
+                [{x: 0, y: 0, type: 1, duration: this.beatLength / 2}, {x: 2, y: 1, type: 1, duration: this.beatLength / 2}],
+                [{x: 1, y: 0, type: 1, duration: this.beatLength / 2}, {x: 3, y: 1, type: 1, duration: this.beatLength / 2}],
+                [{x: 0, y: 0, type: 2, duration: this.beatLength}, {x: 2, y: 1, type: 2, duration: this.beatLength}],
+                [{x: 1, y: 0, type: 2, duration: this.beatLength}, {x: 3, y: 1, type: 2, duration: this.beatLength}],
+                [],
+                [],
+                []
+            ];
+        }
+
+        // Grid setup with laser tiles
         this.gridOriginX = 80;
         this.gridOriginY = 64;
         this.gridWidth = 20;
@@ -76,12 +101,6 @@ class GameplayScene extends Phaser.Scene {
         this.playerLives = 3;
         this.canTakeDamage = true;
 
-        this.startTimer = this.time.addEvent({
-            delay: 3000,
-            callback: this.startLevel,
-            callbackScope: this
-        });
-
         this.state = "READY";
     }
 
@@ -91,7 +110,7 @@ class GameplayScene extends Phaser.Scene {
                 this.state = "GAMEPLAY";
                 this.beatText.setText("1");
                 this.beatTimer = this.time.addEvent({
-                    delay: 60000 / this.bpm,
+                    delay: 60000 / this.bpm / 4,
                     callback: this.runBeat,
                     callbackScope: this,
                     loop: true

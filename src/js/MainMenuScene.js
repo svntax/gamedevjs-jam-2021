@@ -50,6 +50,18 @@ class MainMenuScene extends Phaser.Scene {
             }
         });
 
+        this.popupBg = this.add.rectangle(0, 0, this.sys.game.canvas.width, this.sys.game.canvas.height, 0, 0.5);
+        this.popupBg.setOrigin(0);
+        this.popupBg.depth = 40;
+        this.popupBg.setInteractive().on("pointerdown", (pointer, localX, localY, event) => {
+            // Do nothing, this background is just meant to block the mouse from clicking on anything behind it
+        });
+        this.popupBg.visible = false;
+        this.popupText = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY, "Popup message", { fontSize: 32 });
+        this.popupText.setOrigin(0.5);
+        this.popupText.visible = false;
+        this.popupText.depth = 40;
+
         const loginText = window.walletConnection.isSignedIn() ? "Logout from NEAR" : "Login to NEAR";
         this.nearLoginButton = createButton(this, loginText, { fontSize: "12px" });
         this.loginButtonGroup = this.rexUI.add.buttons({
@@ -74,6 +86,16 @@ class MainMenuScene extends Phaser.Scene {
     }
 
     update(){
+    }
+
+    showMessagePopup = (message, duration) => {
+        this.popupBg.visible = true;
+        this.popupText.visible = true;
+        this.popupText.setText(message);
+        this.time.delayedCall(duration, () => {
+            this.popupBg.visible = false;
+            this.popupText.visible = false;
+        }, [], this);
     }
 
     onFocus = () => {
