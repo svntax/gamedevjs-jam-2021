@@ -36,6 +36,7 @@ class GameplayScene extends Phaser.Scene {
             this.bpm = jsonData.bpm;
             this.beatLength = 60 / this.bpm;
             this.levelData = jsonData.levelData;
+            this.levelName = jsonData.name;
 
             // Next read the audio data
             data.audioData.arrayBuffer().then((audioArrayBuffer) => {
@@ -53,17 +54,12 @@ class GameplayScene extends Phaser.Scene {
         }
         else{
             this.song = this.sound.add("tutorialSong");
-            this.bpm = 100;
+            
+            const jsonData = this.cache.json.get("tutorialLevelData");
+            this.bpm = jsonData.bpm || 90;
+            this.levelName = jsonData.name;
             this.beatLength = 60 / this.bpm;
-            this.levelData = [
-                [{x: 0, y: 0, type: 1}, {x: 2, y: 1, type: 1}],
-                [{x: 1, y: 0, type: 1}, {x: 3, y: 1, type: 1}],
-                [{x: 0, y: 0, type: 2}, {x: 2, y: 1, type: 2}],
-                [{x: 1, y: 0, type: 2}, {x: 3, y: 1, type: 2}],
-                [],
-                [],
-                []
-            ];
+            this.levelData = jsonData.levelData;
             this.startTimer = this.time.addEvent({
                 delay: 3000,
                 callback: this.startLevel,
@@ -174,7 +170,7 @@ class GameplayScene extends Phaser.Scene {
     startLevel = () => {
         this.song.play();
         this.state = "LOADING";
-        this.beatText.visible = false;
+        this.beatText.setText("Now playing: " + this.levelName);
     }
 
     gameOver = () => {
@@ -229,12 +225,18 @@ class GameplayScene extends Phaser.Scene {
         if(this.beatTimer){
             this.beatTimer.paused = true;
         }
+        if(this.startTimer){
+            this.startTimer.paused = true;
+        }
         this.song.pause();
     }
 
     onFocus = () => {
         if(this.beatTimer){
             this.beatTimer.paused = false;
+        }
+        if(this.startTimer && this.startTimer.paused){
+            this.startTimer.paused = false;
         }
         this.song.resume();
     }
